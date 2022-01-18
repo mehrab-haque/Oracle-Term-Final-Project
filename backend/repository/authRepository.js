@@ -10,15 +10,15 @@ class AuthRepository extends Repository{
     }
 
     reg=async data=>{
-        const findQuery='select * from users where login = :0'
+        const findQuery='select * from users where login = :1'
         const findParams=[data.login]
         var findResult=await this.query(findQuery,findParams)
         if(findResult.data.length>0)
             return {
                 success:false
             }
-        const query='insert into users (type,name,login,pass) values (:0,:1,:2,:3)'
-        const params=[data.type,data.name,data.login,bcrypt.hashSync(data.pass, 10)]
+        const query='insert into users (name,login,pass) values (:0,:1,:2)'
+        const params=[data.name,data.login,bcrypt.hashSync(data.pass, 10)]
         var result=await this.query(query,params)
         return result
     }
@@ -39,7 +39,7 @@ class AuthRepository extends Repository{
                 id: findResult.data[0]['ID'],
                 login: data.login,
                 pass: dbPass,
-                type:findResult.data[0]['TYPE']
+               
             }, process.env.jwt_secret, {expiresIn: `${tokenExpiryDuration}s`})
             return {
                 success: true,

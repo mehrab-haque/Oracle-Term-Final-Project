@@ -3,6 +3,15 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Loader from "react-loader-spinner";
 import Auth from "./components/Auth";
+import Register from "./components/Register/register";
+import Login from "./components/Login/Login";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Redirect,
+} from "react-router-dom";
+
 import {Dialog, DialogContent} from "@mui/material";
 
 
@@ -48,7 +57,19 @@ function App() {
                 draggable
                 pauseOnHover
             />
-            <Auth/>
+      <Router>
+
+       <Routes>
+        <Route exact path="/" element={ <Auth/> } />
+          
+        
+         <Route path="/register" element={<Register/>} />
+     
+        <Route path="/login" element={<Login/>} />
+       
+         </Routes>
+       </Router>
+          
         </div>
     );
 }
