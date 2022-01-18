@@ -7,6 +7,7 @@ import {useNavigate} from "react-router-dom"
 import {register} from "../../action/auth"
 import {useSelector,useDispatch} from 'react-redux'
 import { CircularProgress } from '@mui/material';
+import {showToast} from "../../App"
 export default function Register() {
   const username = useRef();
   const login = useRef();
@@ -17,16 +18,26 @@ const navigate=useNavigate();
 const loadingState=useSelector(state=>state.auth)
   const handleClick = async (e) => {
     e.preventDefault();
-    if (passwordAgain.current.value !== password.current.value) {
-      passwordAgain.current.setCustomValidity("Passwords don't match!");
-    } else {
+  console.log(passwordAgain.current.value);
+ console.log(password.current.value)
+if(username.current.value==='' || login.current.value===''|| password.current.value===''){
+      showToast("Can't keep any field empty");
+}
+   else if (passwordAgain.current.value !== password.current.value) {
+      showToast("Passwords don't match!");
+    } 
+else if(passwordAgain.current.value.length <6){
+showToast("Passwords should be of at least  characters!");
+}
+else {
+         passwordAgain.current.setCustomValidity("");
       const user = {
         name: username.current.value,
         login: login.current.value,
         pass: password.current.value,
       };
       try {
-      //  await axios.post("http://localhost:8800/api/auth/register", user);
+      
       register(user,dispatcher);
 
       
@@ -46,9 +57,9 @@ const loadingState=useSelector(state=>state.auth)
           </span>
         </div>
         <div className="loginRight">
-          <form className="loginBox" onSubmit={handleClick}>
+          <form className="loginBox" onSubmit={handleClick} >
             <input
-              placeholder="Username"
+              placeholder="Name"
               required
               ref={username}
               className="loginInput"
@@ -77,7 +88,7 @@ const loadingState=useSelector(state=>state.auth)
             />
            {loadingState===0?<LoadingButton loading variant="outlined">
   Submit
-</LoadingButton>: <button className="loginButton" type="submit">
+</LoadingButton>: <button className="loginButton" onClick={handleClick} >
              Sign Up
             </button>}
             <button className="loginRegisterButton">  <Link to="/login" style={{textDecoration:"none",color:"white"}}> Log into Account </Link></button>
