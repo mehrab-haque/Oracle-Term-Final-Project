@@ -55,6 +55,9 @@ console.log(err)
             case 409:
                 showToast('User already exists')
                 break
+            case 404:
+                showToast('User already exists')
+                break
             case 500:
                 showToast('Internal server error')
                 break

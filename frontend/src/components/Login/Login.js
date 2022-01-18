@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import "./login.css";
 import {Link} from "react-router-dom"
-
+import {showToast} from "../../App"
 
 export default function Login() {
   const login = useRef();
@@ -9,7 +9,13 @@ export default function Login() {
   
 
   const handleClick = (e) => {
-    e.preventDefault();
+   const loginVal=login.current.value;
+  const passVal=password.current.value;
+ if(loginVal===''||passVal===''){
+ showToast("Can't keep any field empty");
+
+}
+    
    
   };
 
@@ -23,7 +29,7 @@ export default function Login() {
           </span>
         </div>
         <div className="loginRight">
-          <form className="loginBox" onSubmit={handleClick}>
+          <form className="loginBox">
             <input
               placeholder="Login"
               type="text"
@@ -39,7 +45,7 @@ export default function Login() {
               className="loginInput"
               ref={password}
             />
-            <button className="loginButton" type="submit" >
+            <button className="loginButton" type="button" onClick={handleClick} >
               
                 Log In
               
