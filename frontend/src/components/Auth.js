@@ -3,9 +3,7 @@ import {showToast} from "../App";
 
 const Auth=props=>{
 
-    useEffect(()=>{
-       showToast('Hello World')
-    },[])
+    
 
     return(
         <div>

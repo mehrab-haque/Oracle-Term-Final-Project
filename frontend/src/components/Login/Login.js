@@ -1,18 +1,41 @@
-import { useRef } from "react";
+import { useRef,useEffect } from "react";
 import "./login.css";
 import {Link} from "react-router-dom"
 import {showToast} from "../../App"
-
+import {login} from "../../action/auth"
+import {useDispatch,useSelector} from "react-redux"
+import {useNavigate} from "react-router-dom"
 export default function Login() {
-  const login = useRef();
-  const password = useRef();
+const loginVal = useRef();
+const password = useRef();
+const navigate=useNavigate()
+const dispatcher=useDispatch();
+const authState=useSelector(state=>state.auth)
+useEffect(()=>{
+
+if(authState===1){
+
+navigate('/messages');
+}
+
+},[authState])
+
   
 
   const handleClick = (e) => {
-   const loginVal=login.current.value;
+   const loginValue=loginVal.current.value;
   const passVal=password.current.value;
- if(loginVal===''||passVal===''){
+const data={
+login:loginValue,
+pass:passVal
+};
+ if(loginValue===''||passVal===''){
  showToast("Can't keep any field empty");
+
+}
+else{
+
+login(data,dispatcher);
 
 }
     
@@ -35,7 +58,7 @@ export default function Login() {
               type="text"
               required
               className="loginInput"
-              ref={login}
+              ref={loginVal}
             />
             <input
               placeholder="Password"
