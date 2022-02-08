@@ -5,6 +5,7 @@ import {logout} from "../../action/auth"
 import {checkAuth} from "../../action/auth"
 import Inboxes from "./Inbox/Inboxes.js"
 import "./messages.css"
+import Message from "../Message/Message"
 import Navbar from "../Navbar"
 const Messages=props=>{
 
@@ -106,7 +107,28 @@ return (
 	</div>
         <div className="chatBox">
         <div className="chatBoxWrapper">
-    Box
+   <div className="chatBoxTop">
+<Message own={false}/>
+<Message own={true}/>
+<Message own={true}/>
+<Message own={false}/>
+<Message own={false}/>
+<Message own={true}/>
+<Message own={true}/>
+<Message own={false}/>
+</div>
+<div className="chatBoxBottom">
+ <textarea
+                    className="chatMessageInput"
+                    placeholder="write something..."
+                 
+                 
+                  ></textarea>
+                  <button className="chatSubmitButton">
+                    Send
+                  </button>
+</div>
+
      </div>
 
      </div>
