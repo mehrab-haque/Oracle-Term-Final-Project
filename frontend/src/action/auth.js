@@ -17,7 +17,7 @@ export const checkAuth=(dispatcher)=>{
 export const login=(data,dispatcher)=>{
     dispatcher(loadingDispatch())
     axios.post(api_base_url+'auth/login',data).then(res=>{  //dummy URL currently
-        cookies.set('token',res.data.access_token,{ path: '/', maxAge: COOKIE_AGE }) //setting token
+        cookies.set('token',res.data.token,{ path: '/', maxAge: COOKIE_AGE }) //setting token
         checkAuth(dispatcher)
         console.log(res.data)
        

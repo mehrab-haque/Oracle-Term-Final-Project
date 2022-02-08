@@ -3,9 +3,11 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser=require('body-parser')
 
+
+
 //importing routes
 const authRoutes=require('./route/authRoutes')
-const itemsRoutes=require('./route/itemsRoutes')
+const usersRoutes=require('./route/usersRoutes')
 
 const app = express();
 app.use(cors());
@@ -16,13 +18,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const apiVersion = "/api/v1.0.0";
 
 app.use(apiVersion + '/auth', authRoutes);
-app.use(apiVersion + '/item', itemsRoutes);
+app.use(apiVersion + '/users', usersRoutes);
 
 const port=process.env.PORT || 8080;
 
 app.listen(port, () => {
     console.log(`Example app listening at port : ${port}`)
 })
+
+
 
 
 

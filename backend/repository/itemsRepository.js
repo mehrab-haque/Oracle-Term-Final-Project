@@ -6,7 +6,7 @@ class ItemsRepository extends Repository{
     }
 
     list=async ()=>{
-        const query='select * from items'
+        const query='select * from global_name'
         const params=[]
         var result=await this.query(query,params)
         return result
