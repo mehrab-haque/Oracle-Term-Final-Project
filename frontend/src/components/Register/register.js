@@ -15,7 +15,7 @@ export default function Register() {
   const passwordAgain = useRef();
   const dispatcher=useDispatch();
 const navigate=useNavigate();
-const loadingState=useSelector(state=>state.auth)
+const loadingState=useSelector(state=>state.regAuth)
   const handleClick = async (e) => {
     e.preventDefault();
   console.log(passwordAgain.current.value);

@@ -41,13 +41,14 @@ export const login=(data,dispatcher)=>{
 }
 
 export const register=(data,dispatcher)=> {
-    dispatcher(loadingDispatch())
+    dispatcher(loadingRegisterDispatch())
 
     console.log(data)
     axios.post(api_base_url+'auth/reg',data).then(res=>{  
         console.log(res.data)
        
         checkAuth(dispatcher)
+       dispatcher(registerDispatch());
 showToast("Successfully registered");
     }).catch(err=>{
 console.log(err)
@@ -65,6 +66,7 @@ console.log(err)
                 showToast('Connectvity problem')
         }
         checkAuth(dispatcher)
+dispatcher(notRegisterDispatch());
     })
 }
 
@@ -95,3 +97,20 @@ const loadingDispatch=()=>{
         type:'AUTH_LOADING'
     }
 }
+const registerDispatch=()=>{
+    return {
+        type:'REGISTERED_IN'
+    }
+}
+const notRegisterDispatch=()=>{
+    return {
+        type:'NOT_REGISTERED'
+    }
+}
+
+const loadingRegisterDispatch=()=>{
+    return {
+        type:'REGISTER_LOADING'
+    }
+}
+

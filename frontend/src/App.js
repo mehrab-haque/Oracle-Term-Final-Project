@@ -1,15 +1,21 @@
-import React, {useState} from 'react'
+import React, {useState,useEffect} from 'react'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Loader from "react-loader-spinner";
 import Auth from "./components/Auth";
 import Register from "./components/Register/register";
 import Login from "./components/Login/Login";
+import Message from "./components/Conversation/Messages";
+import {useNavigate} from "react-router-dom"
+import {useSelector,useDispatch} from "react-redux"
+import {checkAuth} from "./action/auth"
+import Cookies from 'universal-cookie';
 import {
   BrowserRouter as Router,
   Routes,
   Route,
-  Redirect,
+  Navigate,
+
 } from "react-router-dom";
 
 import {Dialog, DialogContent} from "@mui/material";
@@ -21,6 +27,13 @@ var setLoading
 function App() {
 
     const [loading,setL]=useState(false)
+    const state=useSelector(state=>state.auth);
+    const dispatcher=useDispatch();
+const cookies=new Cookies();
+  useEffect(()=>{
+       checkAuth(dispatcher);
+    },[state])
+  
     setLoading=setL
     showToast=message=>{
         toast.dark(message, {
@@ -66,6 +79,12 @@ function App() {
          <Route path="/register" element={<Register/>} />
      
         <Route path="/login" element={<Login/>} />
+ 
+<Route path="/messages" element={cookies.get('token')!==undefined && cookies.get('token')!==null? <Message />:<Navigate to="/register" />  }>
+    
+        </Route>
+         
+
        
          </Routes>
        </Router>
@@ -76,3 +95,4 @@ function App() {
 
 export default App;
 export {showToast,setLoading}
+ 
