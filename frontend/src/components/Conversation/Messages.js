@@ -9,6 +9,7 @@ import Message from "../Message/Message"
 import Navbar from "../Navbar"
 import axios from "axios";
 import Cookies from 'universal-cookie';
+import LinearProgress from '@mui/material/LinearProgress';
 
 const cookies = new Cookies();
 
@@ -69,25 +70,38 @@ const Messages=props=>{
     ]
 
     const [chatHeads,setChatHeads]=useState([])
+    
+    const [profileData,setProfileData]=useState({})
 
     useEffect(async()=>{
-        var res=await axios.get('http://localhost:8080/api/v1.0.0/users/list',{headers:{authorization:'Bearer '+cookies.get('token')}})
-        setChatHeads(res.data)
+    axios.get('http://localhost:8080/api/v1.0.0/users/list',{headers:{authorization:'Bearer '+cookies.get('token')}})
+   .then(res=>{
+
+setChatHeads(res.data)
+axios.get('http://localhost:8080/api/v1.0.0/user/profile',{headers:{authorization:'Bearer '+cookies.get('token')}})
+.then(res=>{console.log(res.data);setProfileData(res.data)})
+ .catch(e=>console.log(e))
+})
+
+.catch(e=>console.log(e))
+   
     },[])
+
+
 
     useEffect(()=>{
        checkAuth(dispatcher);
+console.log(profileData)
     },[])
- const signoutClick=()=>{
 
-logout(dispatcher);
-
-
-}
 
     return(
 <>
 <Navbar/>
+
+{profileData.name===undefined?<LinearProgress/>
+
+:(
         <div className="messenger">
       <div className="chatMenu">
 <div className="self">
@@ -97,7 +111,7 @@ logout(dispatcher);
         
         alt=""
       />
-<b style={{marginTop:"5px",fontSize:"23px"}}>Rabib Jahin</b>
+<b style={{marginTop:"5px",fontSize:"23px"}}>{profileData.name}</b>
 </div>
  <div className="chatMenuWrapper">
 
@@ -151,7 +165,9 @@ logout(dispatcher);
     </div>
     </div>
        
-        </div>
+        </div>)
+
+}
 
 </>
     )

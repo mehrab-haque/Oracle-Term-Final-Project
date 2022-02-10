@@ -24,6 +24,7 @@ class AuthRepository extends Repository{
     }
 
     login=async data=>{
+         console.log(data)
         const findQuery='select * from users where login = :0'
         const findParams=[data.login]
         var findResult=await this.query(findQuery,findParams)
