@@ -11,8 +11,10 @@ class UsersRepository extends Repository{
     constructor() {
         super();
     }
+ 
 
     list=async ()=>{
+        
         const query='select * from users'
         const params=[]
         var result=await this.query(query,params)
