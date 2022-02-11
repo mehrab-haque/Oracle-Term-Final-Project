@@ -1,7 +1,7 @@
 import React, {useState,useEffect} from 'react'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Loader from "react-loader-spinner";
+import {Audio} from "react-loader-spinner";
 import Auth from "./components/Auth";
 import Register from "./components/Register/register";
 import Login from "./components/Login/Login";
@@ -10,6 +10,7 @@ import {useNavigate} from "react-router-dom"
 import {useSelector,useDispatch} from "react-redux"
 import {checkAuth} from "./action/auth"
 import Cookies from 'universal-cookie';
+import './config/firebase_config'
 import {
   BrowserRouter as Router,
   Routes,
@@ -51,8 +52,7 @@ const cookies=new Cookies();
         <div>
             <Dialog open={loading}>
                 <DialogContent>
-                    <Loader
-                        type="Oval"
+                    <Audio
                         color="#00BFFF"
                         height={100}
                         width={100}
@@ -95,4 +95,3 @@ const cookies=new Cookies();
 
 export default App;
 export {showToast,setLoading}
- 

@@ -19,6 +19,18 @@ class profileController extends Controller{
         }
     }
 
+    setProfile = async(req, res) => {
+
+        let result = await profileRepository.update(req.body)
+        if (result.success) {
+            res.status(200).json(result);
+        } else {
+            res.status(404).json({
+                success: false,
+            });
+        }
+    }
+
 }
 
 module.exports = profileController
