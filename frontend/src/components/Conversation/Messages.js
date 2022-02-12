@@ -19,6 +19,7 @@ import Button from '@mui/material/Button';
 
 import {app} from '../../config/firebase_config'
 import { getStorage, ref, uploadBytesResumable, getDownloadURL} from "firebase/storage";
+import {sendMessage} from "../../action/messages";
 
 
 
@@ -40,6 +41,8 @@ const useStyles = makeStyles({
 
 
 const Messages = props => {
+
+    const msgRef=useRef()
 
     const storage = getStorage(app);
 
@@ -167,6 +170,17 @@ const inboxClick = (data) => {
 
     }
 
+    const sendMessageClick=async ()=>{
+        console.log(data)
+        const msgText=msgRef.current.value
+        if(msgText.trim().length===0)
+            showToast(`Message can't be empty`)
+        else{
+            await sendMessage(data.id,data.isConnected,msgText)
+        }
+
+    }
+
 
 
     return (
@@ -272,11 +286,15 @@ state===1?
 </div>
 </div>                        
   <div className="chatBoxBottom">
- <textarea
+ <TextField
+     inputRef={msgRef}
+     fullWidth
+     multiline
+     rows={2}
      className="chatMessageInput"
      placeholder="write something..."
-      ></textarea>
-                                    <button className="chatSubmitButton">
+      ></TextField>
+                                    <button onClick={sendMessageClick} className="chatSubmitButton">
                                         Send
                                     </button>
                                 </div>     

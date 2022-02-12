@@ -4,10 +4,10 @@ import "./message.css";
 
 const  MessageContainer= (props)=>{
 
-  useEffect(() => {
-  
-        console.log('data',props.data)
-    }, [props.data])
+  // useEffect(() => {
+  //
+  //       console.log('data',props.data)
+  //   }, [props.data])
 
   return (
     <div >
