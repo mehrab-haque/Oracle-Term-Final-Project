@@ -5,7 +5,7 @@ import {logout} from "../../action/auth"
 import {checkAuth} from "../../action/auth"
 import Inboxes from "./Inbox/Inboxes.js"
 import "./messages.css"
-import Message from "../Message/Message"
+import MessageContainer from "../Message/MessageContainer"
 import Navbar from "../Navbar"
 import axios from "axios";
 import Cookies from 'universal-cookie';
@@ -57,7 +57,8 @@ const Messages = props => {
 
     const [profileData, setProfileData] = useState({})
     const [image,setImage]=useState(null)
-
+    const [data,setData]=useState(null)
+    const [state,setState]=useState(0)
     useEffect(async () => {
         console.log(app)
         axios.get('http://localhost:8080/api/v1.0.0/users/list', {headers: {authorization: 'Bearer ' + cookies.get('token')}})
@@ -88,6 +89,11 @@ const Messages = props => {
 
     const handleClose = () => {
         setOpen(false);
+    };
+const inboxClick = (data) => {
+      setData(data)
+      setState(1);
+
     };
 
     const onImageChange = event => {
@@ -244,7 +250,10 @@ const Messages = props => {
                                 {
                                     chatHeads.map(c => {
                                         return (
-                                            <Inboxes data={c}/>
+                                           <div onClick={()=>inboxClick(c)}>
+                                            <Inboxes data={c} />
+
+                                            </div>
                                         )
                                     })
                                 }
@@ -253,31 +262,39 @@ const Messages = props => {
                         </div>
                         <div className="chatBox">
                             <div className="chatBoxWrapper">
-                                <div className="chatBoxTop">
-                                    <Message own={false}/>
-                                    <Message own={true}/>
-                                    <Message own={true}/>
-                                    <Message own={false}/>
-                                    <Message own={false}/>
-                                    <Message own={true}/>
-                                    <Message own={true}/>
-                                    <Message own={false}/>
-                                </div>
-                                <div className="chatBoxBottom">
+                             
+{
+state===1?
+(
+<>   <div className="chatBoxTop">
+<div>
+     < MessageContainer data={data} />                            
+</div>
+</div>                        
+  <div className="chatBoxBottom">
  <textarea
      className="chatMessageInput"
      placeholder="write something..."
-
-
- ></textarea>
+      ></textarea>
                                     <button className="chatSubmitButton">
                                         Send
                                     </button>
-                                </div>
+                                </div>     
+
+</>
+)
+:<p>Open inboxes</p>
+}
+
+
+              
+                                                
 
                             </div>
 
                         </div>
+
+
                         <div className="chatOnline">
 
 
