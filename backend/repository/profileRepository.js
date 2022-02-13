@@ -9,7 +9,6 @@ class profileRepository extends Repository {
         const query = 'select id,name,status,image from users where id=:0'
         const params = [data.user_id]
         var result = await this.query(query, params)
-        console.log(result.data[0].NAME)
         return {
 
             success: true,

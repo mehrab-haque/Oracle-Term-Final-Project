@@ -15,6 +15,10 @@ class MessagesRepository extends Repository {
         const inboxFindParams=[Math.min(data.user_id,data.to),Math.max(data.user_id,data.to)]
         const inboxFindResult=await this.query(inboxFindQuery,inboxFindParams);
 
+        console.log(inboxFindQuery)
+        console.log(inboxFindParams)
+        console.log(inboxFindResult)
+
         if(inboxFindResult.data[0].COUNT===0){
             console.log('creating place')
             const placeCreateQuery=`insert into places (type) values (:0)`

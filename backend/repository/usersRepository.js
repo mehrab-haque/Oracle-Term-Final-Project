@@ -13,11 +13,34 @@ class UsersRepository extends Repository{
     }
  
 
-    list=async ()=>{
-        
+    list=async data=>{
+        //console.log(data.user_id)
+        // const inboxQuery=`select messages.place_id, messages.msg, max(senders_receivers.timestamp)  from messages, senders_receivers where messages.place_id in (select id from inboxes where uid_1 = :0 or uid_2 = :1) and messages.id = senders_receivers.message_id group by messages.place_id, messages.msg`
+        // const inboxParams=[data.user_id,data.user_id]
+        // const inboxResult=await this.query(inboxQuery,inboxParams)
+        // console.log(inboxResult)
+
         const query='select * from users'
         const params=[]
         var result=await this.query(query,params)
+
+        var allResult=await Promise.all(result.data.map(async (d,i)=>{
+            var obj={
+                id:d.ID,
+                name:d.NAME,
+                image:images[i%4]
+            }
+            const inboxQuery=`select id from inboxes where uid_1 = :0 and uid_2 = :1`
+            const inboxParams=[Math.min(data.user_id,d.ID),Math.max(data.user_id,d.ID)]
+            var inboxResult=await this.query(inboxQuery,inboxParams)
+            if(inboxResult.data.length===0)
+                obj['isConnected']=false
+            else obj['isConnected']=true
+            return obj
+        }))
+
+        console.log(allResult)
+
         return {
             success:true,
             data:await result.data.map((d,i)=>{
