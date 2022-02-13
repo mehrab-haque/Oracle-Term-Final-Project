@@ -20,8 +20,8 @@ class UsersRepository extends Repository{
         // const inboxResult=await this.query(inboxQuery,inboxParams)
         // console.log(inboxResult)
 
-        const query='select * from users'
-        const params=[]
+        const query='select * from users where id <> :0'
+        const params=[data.user_id]
         var result=await this.query(query,params)
 
         var allResult=await Promise.all(result.data.map(async (d,i)=>{
@@ -30,32 +30,37 @@ class UsersRepository extends Repository{
                 name:d.NAME,
                 image:images[i%4]
             }
-            const inboxQuery=`select id from inboxes where uid_1 = :0 and uid_2 = :1`
+            const inboxQuery=`select froms.user_id as sender_id,messages.place_id,messages.msg as msg,inboxes.id, senders_receivers.timestamp as timestamp from inboxes,messages,senders_receivers,froms where inboxes.uid_1 = :0 and inboxes.uid_2 = :1 and inboxes.id=messages.place_id and senders_receivers.message_id = messages.id and senders_receivers.sender_id=froms.sender_id order by timestamp desc`
             const inboxParams=[Math.min(data.user_id,d.ID),Math.max(data.user_id,d.ID)]
             var inboxResult=await this.query(inboxQuery,inboxParams)
-            if(inboxResult.data.length===0)
+            if(inboxResult.data.length>0) {
+                obj['isConnected'] = true
+                obj['message']={
+                    text:inboxResult.data[0].MSG,
+                    timestamp:inboxResult.data[0].TIMESTAMP,
+                    seen:false,
+                    own:inboxResult.data[0].SENDER_ID===data.user_id
+                }
+            }
+            else {
                 obj['isConnected']=false
-            else obj['isConnected']=true
+                obj['message']={
+                    text:'Not connected yet',
+                    timestamp:0,
+                    seen:true,
+                    own:true
+                }
+            }
             return obj
         }))
 
         console.log(allResult)
 
+        allResult=allResult.sort((a, b) => b.message.timestamp-a.message.timestamp);
+
         return {
             success:true,
-            data:await result.data.map((d,i)=>{
-                return {
-                    id:d.ID,
-                    name:d.NAME,
-                    image:images[i%4],
-                    isConnected:false,
-                    message:{
-                        text:'hello world',
-                        timestamp:Date.now(),
-                        seen:i%2===0
-                    }
-                }
-            })
+            data:allResult
         }
     }
 

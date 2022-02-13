@@ -17,7 +17,7 @@ export default function Inboxes(props) {
 <span className="conversationName">{props.data.name}</span>
     {
         props.data.message.seen?(
-            <p className="latestMessage">{props.data.message.text} <span className="time">{new Date(props.data.message.timestamp).toLocaleString()}</span> </p>
+            <p className="latestMessage">{props.data.message.text} <span className="time">{props.data.message.timestamp>0?new Date(props.data.message.timestamp).toLocaleString():''}</span> </p>
         ):(
             <p className="latestMessage"><b>{props.data.message.text}</b> <span className="time">{new Date(props.data.message.timestamp).toLocaleString()}</span> </p>
         )
