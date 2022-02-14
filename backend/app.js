@@ -10,6 +10,7 @@ const authRoutes=require('./route/authRoutes')
 const usersRoutes=require('./route/usersRoutes')
 const profileRoutes=require('./route/profileRoutes')
 const messagesRoutes=require('./route/messagesRoutes')
+const groupRoutes=require('./route/groupRoutes')
 
 const app = express();
 app.use(cors());
@@ -23,6 +24,7 @@ app.use(apiVersion + '/auth', authRoutes);
 app.use(apiVersion + '/users', usersRoutes);
 app.use(apiVersion + '/user', profileRoutes);
 app.use(apiVersion + '/message', messagesRoutes);
+app.use(apiVersion + '/group', groupRoutes);
 
 const port=process.env.PORT || 8080;
 
