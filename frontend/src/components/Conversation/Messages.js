@@ -61,6 +61,7 @@ const Messages = props => {
     const [profileData, setProfileData] = useState({})
     const [image,setImage]=useState(null)
     const [data,setData]=useState(null)
+ const [data2,setData2]=useState(null)
     const [state,setState]=useState(0)
     useEffect(async () => {
         console.log(app)
@@ -95,9 +96,16 @@ const Messages = props => {
         setOpen(false);
     };
 const inboxClick = (data) => {
-      setData(data)
+  
       setState(1);
-
+setData2(data);
+console.log(data.id);
+ axios.get('http://localhost:8080/api/v1.0.0/message/get/'+data.id, {headers: {authorization: 'Bearer ' + cookies.get('token')}})
+                    .then(res => {
+                     setData(res.data);
+                      
+                    })
+                    .catch(e => console.log(e))
     };
 
     const onImageChange = event => {
@@ -172,12 +180,12 @@ const inboxClick = (data) => {
     }
 
     const sendMessageClick=async ()=>{
-        console.log(data)
+        console.log(data2)
         const msgText=msgRef.current.value
         if(msgText.trim().length===0)
             showToast(`Message can't be empty`)
         else{
-            await sendMessage(data.id,data.isConnected,msgText)
+            await sendMessage(data2.id,data2.isConnected,msgText)
         }
 
     }

@@ -4,6 +4,58 @@ class MessagesRepository extends Repository {
     constructor() {
         super();
     }
+ getMessages=async (data,id)=>{
+        const query='select id from inboxes where uid_1=:0 and uid_2 =:1';
+        const params=[Math.min(data.user_id,id),Math.max(data.user_id,id)]
+        var result=await this.query(query,params)
+  console.log(result.data)
+        if(result.data.length==0){
+
+return {
+success:true,
+data:[]
+}
+}
+        var placeId=result.data[0].ID;
+
+	const msgQuery='select messages.msg,senders_receivers.timestamp,froms.user_id from messages,senders_receivers,froms  where  messages.place_id =:0  and senders_receivers.message_id=messages.id and froms.sender_id=senders_receivers.sender_id order by senders_receivers.timestamp ';
+        const msgParams=[placeId];
+	var msgResult=await this.query(msgQuery,msgParams)
+var allRes;
+       
+
+ allRes = msgResult.data.map(d=>{
+              var obj={
+		
+		msg:d.MSG,
+                timestamp:d.TIMESTAMP,
+		isConnected:true
+
+
+                 }
+	
+               if(d.USER_ID===data.user_id){
+                 obj['own']=true;
+
+			}
+              else{
+		obj['own']=false;
+		} 
+		return obj;
+
+            })
+
+
+
+	console.log(allRes);          
+         
+
+return {
+
+success:true,
+data:allRes
+}
+    }
 
     send = async (data) => {
         console.log(data);
