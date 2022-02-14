@@ -64,6 +64,7 @@ class UsersRepository extends Repository{
         }
     }
 
+ 
     create=async data=>{
         const query='insert into items (name) values (:0)'
         const params=[data.name]

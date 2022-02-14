@@ -8,6 +8,6 @@ const messagesController=new MessagesController()
 
 //anyone can see the list off items
 router.post('/send',authMiddleware,messagesController.send)
-
+router.get('/get/:id',authMiddleware,messagesController.get)
 
 module.exports = router;
