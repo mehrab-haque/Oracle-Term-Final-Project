@@ -19,6 +19,18 @@ class GroupController extends Controller{
         }
     }
 
+    addMember = async(req, res) => {
+
+        let result = await groupRepository.add(req.body)
+        if (result.success) {
+            res.status(200).json(result.data);
+        } else {
+            res.status(503).json({
+                success: false,
+            });
+        }
+    }
+
 }
 
 module.exports = GroupController

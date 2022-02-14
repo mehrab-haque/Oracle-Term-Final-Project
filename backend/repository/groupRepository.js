@@ -9,6 +9,28 @@ class GroupRepository extends Repository{
         super();
     }
 
+    add=async data=>{
+
+
+        const isMemberQuery=`select count(*) as count from members where user_id = :0 and group_id = :1`
+        const isMemberParams=[data.user_id,data.groupId]
+        const isMemberResult=await this.query(isMemberQuery,isMemberParams)
+
+        if(isMemberResult.data[0].COUNT===0)
+            return {
+                success:false,
+                data:{}
+            }
+
+
+
+        const memberCreateQuery=`insert into members (user_id,group_id,timestamp) values (:0,:1,:2)`
+        const memberCreateParams=[data.userId,data.groupId,parseInt(Date.now()/1000)]
+        const memberCreateResult=await this.query(memberCreateQuery,memberCreateParams)
+
+        return memberCreateResult
+    }
+
     create=async data=>{
 
         const placeCreateQuery=`insert into places (type) values (:0)`

@@ -6,5 +6,6 @@ const GroupController=require('../controller/groupController')
 const groupController=new GroupController()
 
 router.post('/create',authMiddleware,groupController.createGroup)
+router.post('/add',authMiddleware,groupController.addMember)
 
 module.exports = router;
