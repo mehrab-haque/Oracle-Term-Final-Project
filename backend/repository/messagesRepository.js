@@ -117,7 +117,7 @@ else{
             const senders_receiversParams=[msgIdResult.data[0].ID,senderId,receiverId,parseInt(Date.now()/1000)];
             const senders_receiversResult=await this.query(senders_receiversQuery, senders_receiversParams); 
             console.log("done"); 
-
+console.log(senders_receiversParams)
          
         return {
             success:true,

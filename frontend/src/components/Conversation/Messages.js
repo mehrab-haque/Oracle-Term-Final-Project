@@ -65,7 +65,8 @@ const Messages = props => {
     useEffect(async () => {
         console.log(app)
         axios.get('http://localhost:8080/api/v1.0.0/users/list', {headers: {authorization: 'Bearer ' + cookies.get('token')}})
-            .then(res => {
+            .then(res =>{
+                console.log(res.data)
 
                 setChatHeads(res.data)
                 axios.get('http://localhost:8080/api/v1.0.0/user/profile', {headers: {authorization: 'Bearer ' + cookies.get('token')}})
@@ -262,10 +263,10 @@ const inboxClick = (data) => {
                                 </div>
 
                                 {
-                                    chatHeads.map(c => {
+                                    chatHeads.map((c,i) => {
                                         return (
                                            <div onClick={()=>inboxClick(c)}>
-                                            <Inboxes data={c} />
+                                            <Inboxes key={i} data={c} />
 
                                             </div>
                                         )
