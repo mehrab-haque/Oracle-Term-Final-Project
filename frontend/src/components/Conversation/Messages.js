@@ -47,9 +47,10 @@ const Messages = props => {
     const storage = getStorage(app);
 
     const [imagePreview,setImagePreview]=useState(null)
-
+   const [imagePreview2,setImagePreview2]=useState(null)
     const nameRef=useRef()
     const statusRef=useRef()
+   const groupNameRef=useRef()
 
     const dispatch = useDispatch();
 
@@ -57,9 +58,11 @@ const Messages = props => {
     const classes = useStyles()
     const [chatHeads, setChatHeads] = useState([])
     const [open, setOpen] = useState(false);
+    const [open2, setOpen2] = useState(false);
 
     const [profileData, setProfileData] = useState({})
     const [image,setImage]=useState(null)
+    const [image2,setImage2]=useState(null)
     const [data,setData]=useState(null)
  const [data2,setData2]=useState(null)
     const [state,setState]=useState(0)
@@ -91,13 +94,20 @@ const Messages = props => {
     const handleClick = () => {
         setOpen(true);
     }
-
-    const handleClose = () => {
+  const handleClick2 = () => {
+        setOpen2(true);
+    }
+    const handleClose2 = () => {
+        setOpen2(false);
+    }
+ const handleClose= () => {
         setOpen(false);
     };
+
 const inboxClick = (data) => {
   
       setState(1);
+
 setData2(data);
 console.log(data.id);
  axios.get('http://localhost:8080/api/v1.0.0/message/get/'+data.id, {headers: {authorization: 'Bearer ' + cookies.get('token')}})
@@ -112,6 +122,11 @@ console.log(data.id);
         setImage(event.target.files[0])
         var url = URL.createObjectURL(event.target.files[0])
         setImagePreview(url)
+    };
+const onImageChange2 = event => {
+        setImage2(event.target.files[0])
+        var url = URL.createObjectURL(event.target.files[0])
+        setImagePreview2(url)
     };
 
     const upload=async ()=>{
@@ -179,7 +194,76 @@ console.log(data.id);
 
     }
 
+ const upload2=async ()=>{
+        if(groupNameRef.current.value.trim().length===0)
+            showToast('Name cannot be empty')
+        else{
+            setLoading(true)
+
+            if(image2!==null){
+                const groupImagesRef = ref(storage, `images/${image2.name.split('.')[image2.name.split('.').length-1]}`);
+                const uploadTask = uploadBytesResumable(groupImagesRef, image2);
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                    },
+                    (error) => {
+                        setLoading(false)
+                        showToast('Error occurred')
+                    },
+                    () => {
+                        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+			console.log(downloadURL);
+                            var newData={
+                                name: groupNameRef.current.value,
+                               
+                                image: downloadURL
+                            }
+
+                            axios.post('http://localhost:8080/api/v1.0.0/group/create',newData,{headers: {authorization: 'Bearer ' + cookies.get('token')}})
+                                .then(res => {
+                                    
+                                    setLoading(false)
+                                    showToast('Group Created Successfully...')
+                                })
+                                .catch(e => {
+                             
+       setLoading(false)
+                                    showToast('Error occurred')
+                                    console.log(e)
+                                })
+                        });
+                    })
+            }else{
+
+                var newData={
+                    name: groupNameRef.current.value,
+                    
+                    image:'https://buet-edu-1.s3.ap-south-1.amazonaws.com/mehrab/venn_icon.png'
+                }
+                axios.post('http://localhost:8080/api/v1.0.0/group/create',newData,{headers: {authorization: 'Bearer ' + cookies.get('token')}})
+                    .then(res => {
+                       
+                        setLoading(false)
+                        showToast('Group created Successfully...')
+                    })
+                    .catch(e => {
+                        setLoading(false)
+                        showToast('Error occurred')
+                        console.log(e)
+                    })
+            }
+        }
+
+    }
+
+
+
+
+
+
+
     const sendMessageClick=async ()=>{
+
         console.log(data2)
         const msgText=msgRef.current.value
         if(msgText.trim().length===0)
@@ -246,6 +330,45 @@ console.log(data.id);
 
                 </DialogContent>
             </Dialog>
+ <Dialog onClose={handleClose2} open={open2}>
+                <DialogTitle>Create Group</DialogTitle>
+
+                <DialogContent className={classes.root}>
+                    <TextField
+                        id="outlined-name-input"
+                        label="Name"
+                        
+                        type="text"
+                        inputRef={groupNameRef}
+                        style={{marginTop: '20px'}}
+                        autoFocus
+                        margin="dense"
+
+                    />
+
+                  
+                    <input
+                        style={{display: "none"}}
+                        id="contained-button-file"
+                        type="file"
+                        onChange={onImageChange2}
+                    />
+                    <center>
+                    <div>
+                        <img style={{marginTop: "10px"}} src={imagePreview2} height={'100px'} width={'100px'}/>
+                    </div>
+                    <label htmlFor="contained-button-file">
+                        <Button variant="contained" color="primary" component="span" style={{marginTop: "10px"}}>
+                            Upload Image
+                        </Button>
+                    </label>
+                    <Button onClick={upload2} variant="contained" color="primary" component="span" style={{marginLeft: "10px",marginTop:'10px'}}>
+                        Create
+                    </Button>
+                    </center>
+
+                </DialogContent>
+            </Dialog>
 
 
             {profileData.name === undefined ? <LinearProgress/>
@@ -262,12 +385,14 @@ console.log(data.id);
                                 />
                                 <b style={{marginTop: "5px", fontSize: "23px"}}
                                    onClick={handleClick}>{profileData.name}</b>
+      				<Button variant="outlined" style={{marginLeft:"40px"}} onClick={handleClick2}>Create Group</Button>
                             </div>
                             <div className="chatMenuWrapper">
 
                                 <input placeholder="Search for friends" className="chatMenuInput"/>
                                 <div style={{marginTop: "20px"}}>
                                     <b style={{fontSize: "20px"}}>Chats</b>
+                               
                                 </div>
 
                                 {
