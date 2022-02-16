@@ -18,10 +18,32 @@ class GroupController extends Controller{
             });
         }
     }
+  getGroupMembers = async(req, res) => {
+
+        let result = await groupRepository.getMembers(req.body,req.params.id)
+        if (result.success) {
+            res.status(200).json(result.data);
+        } else {
+            res.status(404).json({
+                success: false,
+            });
+        }
+    }
 
     addMember = async(req, res) => {
 
         let result = await groupRepository.add(req.body)
+        if (result.success) {
+            res.status(200).json(result.data);
+        } else {
+            res.status(503).json({
+                success: false,
+            });
+        }
+    }
+removeMember = async(req, res) => {
+
+        let result = await groupRepository.remove(req.body)
         if (result.success) {
             res.status(200).json(result.data);
         } else {
