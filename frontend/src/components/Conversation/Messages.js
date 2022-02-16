@@ -264,15 +264,12 @@ const onImageChange2 = event => {
 
 
     const sendMessageClick=async ()=>{
-
-        console.log(data2)
         const msgText=msgRef.current.value
         if(msgText.trim().length===0)
             showToast(`Message can't be empty`)
         else{
-            await sendMessage(data2.id,data2.isConnected,msgText)
+            await sendMessage(data2.id,data2.type,msgText)
         }
-
     }
 
 

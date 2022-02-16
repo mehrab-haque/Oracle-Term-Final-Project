@@ -67,6 +67,13 @@ class GroupRepository extends Repository{
         // return result
     }
 
+    members=async data=>{
+        const membersQuery=`select user_id from members where group_id=:0`
+        const membersParams=[data.groupId]
+        const membersResult=await this.query(membersQuery,membersParams)
+        return membersResult
+    }
+
 }
 
 module.exports=GroupRepository

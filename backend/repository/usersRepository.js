@@ -28,7 +28,8 @@ class UsersRepository extends Repository{
             var obj={
                 id:d.ID,
                 name:d.NAME,
-                image:images[i%4]
+                image:images[i%4],
+                type:1
             }
             const inboxQuery=`select froms.user_id as sender_id,messages.place_id,messages.msg as msg,inboxes.id, senders_receivers.timestamp as timestamp from inboxes,messages,senders_receivers,froms where inboxes.uid_1 = :0 and inboxes.uid_2 = :1 and inboxes.id=messages.place_id and senders_receivers.message_id = messages.id and senders_receivers.sender_id=froms.sender_id order by timestamp desc`
             const inboxParams=[Math.min(data.user_id,d.ID),Math.max(data.user_id,d.ID)]
@@ -54,9 +55,50 @@ class UsersRepository extends Repository{
             return obj
         }))
 
-        console.log(allResult)
 
-        allResult=allResult.sort((a, b) => b.message.timestamp-a.message.timestamp);
+        const groupListQuery=`select members.group_id,groups.name,groups.image from members,groups where members.user_id = :0 and members.group_id=groups.id`
+        const groupListParams=[data.user_id]
+        const groupFindResult=await this.query(groupListQuery,groupListParams)
+
+        var groupResults=await Promise.all(groupFindResult.data.map(async g=>{
+            var obj={
+                id:g.GROUP_ID,
+                name:g.NAME,
+                image:g.IMAGE,
+                type:2
+            }
+
+            const groupMessageQuery=`select froms.user_id as sender_id,messages.place_id,messages.msg as msg, senders_receivers.timestamp as timestamp from messages,senders_receivers,froms where messages.place_id = :0 and senders_receivers.message_id = messages.id and senders_receivers.sender_id=froms.sender_id order by timestamp desc`
+            const groupMessageParams=[g.GROUP_ID]
+            const groupMessageResult=await this.query(groupMessageQuery,groupMessageParams)
+
+            if(groupMessageResult.data.length===0){
+                obj['message']= {
+                    text:null,
+                    timestamp:0
+                }
+            }else{
+                obj['message']={
+                    text:groupMessageResult.data[0].MSG,
+                    timestamp:groupMessageResult.data[0].TIMESTAMP,
+                    seen:false,
+                    own:groupMessageResult.data[0].SENDER_ID===data.user_id
+                }
+            }
+
+            return obj
+        }))
+
+
+
+
+        allResult=[...allResult,...groupResults]
+
+        allResult=allResult.sort((a, b) => {
+            return b.message.timestamp-a.message.timestamp
+        });
+
+        //console.log(allResult)
 
         return {
             success:true,
