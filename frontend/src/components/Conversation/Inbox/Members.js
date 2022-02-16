@@ -3,7 +3,7 @@ import "./inboxes.css";
 
 export default function Inboxes(props) {
 
-console.log('props',props.data)
+console.log(props.data.message.timestamp)
 console.log(new Date(props.data.message.timestamp*1000).toLocaleString())
 
   return (

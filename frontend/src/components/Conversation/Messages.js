@@ -4,6 +4,7 @@ import {setLoading, showToast} from "../../App";
 import {logout} from "../../action/auth"
 import {checkAuth} from "../../action/auth"
 import Inboxes from "./Inbox/Inboxes.js"
+import Members from "./Inbox/Members.js"
 import "./messages.css"
 import MessageContainer from "../Message/MessageContainer"
 import Navbar from "../Navbar"
@@ -451,7 +452,16 @@ state===1?
 
 
                             <div className="chatOnlineWrapper">
-                                Online
+                                 {
+                                   state && chatHeads.map((c,i) => {
+                                        return (
+                                           <div onClick={()=>inboxClick(c)}>
+                                            <Members key={i} data={c} />
+
+                                            </div>
+                                        )
+                                    })
+                                }
                             </div>
                         </div>
 
