@@ -18,3 +18,16 @@ export const sendMessage=async (id,isConnected,body)=>{
         console.log(e)
     }
 }
+
+export const sendMessageToGroup=async (id,type,body)=>{
+    try{
+        await axios.post(`${api_base_url}message/send`,{
+                to:id,
+                type:type,
+                body:body
+            },
+            {headers: {authorization: 'Bearer ' + cookies.get('token')}})
+    }catch (e) {
+        console.log(e)
+    }
+}
