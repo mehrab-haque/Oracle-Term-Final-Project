@@ -10,6 +10,7 @@ import {useNavigate} from "react-router-dom"
 import {useSelector,useDispatch} from "react-redux"
 import {checkAuth} from "./action/auth"
 import Cookies from 'universal-cookie';
+import io from 'socket.io-client'
 import './config/firebase_config'
 import {
   BrowserRouter as Router,
@@ -24,14 +25,15 @@ import {Dialog, DialogContent} from "@mui/material";
 
 var showToast
 var setLoading
-
+let socket;
 function App() {
-
+  const endpt='http://localhost:8080'
     const [loading,setL]=useState(false)
     const state=useSelector(state=>state.auth);
     const dispatcher=useDispatch();
 const cookies=new Cookies();
   useEffect(()=>{
+  socket = io(endpt);
        checkAuth(dispatcher);
     },[state])
   
