@@ -18,6 +18,7 @@ import MoreIcon from '@mui/icons-material/MoreVert';
 import {logout} from "../action/auth.js"
 import {useDispatch} from "react-redux"
 import Button from '@mui/material/Button';
+import {socket} from "./Conversation/Messages";
 
 
 const Search = styled('div')(({ theme }) => ({
@@ -87,7 +88,7 @@ export default function NavBar() {
     setMobileMoreAnchorEl(event.currentTarget);
   };
 const signoutClick=()=>{
-
+socket.disconnect()
 logout(dispatch);
 
 

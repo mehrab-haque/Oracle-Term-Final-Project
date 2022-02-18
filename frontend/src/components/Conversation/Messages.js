@@ -23,6 +23,10 @@ import {app} from '../../config/firebase_config'
 import {getStorage, ref, uploadBytesResumable, getDownloadURL} from "firebase/storage";
 import {sendMessage} from "../../action/messages";
 
+import io from 'socket.io-client'
+import {socket_endpoint} from "../../index";
+let socket;
+
 
 const cookies = new Cookies();
 
@@ -47,6 +51,8 @@ const Messages = props => {
 
     const storage = getStorage(app);
 
+
+
     const [imagePreview, setImagePreview] = useState(null)
     const [imagePreview2, setImagePreview2] = useState(null)
     const nameRef = useRef()
@@ -69,6 +75,10 @@ const Messages = props => {
     const [others, setOthers] = useState(null)
     const [data2, setData2] = useState(null)
     const [state, setState] = useState(0)
+
+
+
+
     useEffect(async () => {
 
         console.log(app)
@@ -304,6 +314,58 @@ const Messages = props => {
         }
     }
 
+    const chatHeadsRef=useRef()
+
+    useEffect(()=>{
+        chatHeadsRef.current=chatHeads
+    },[chatHeads])
+
+    useEffect(async ()=>{
+        socket = await io(socket_endpoint);
+        socket.emit('token', cookies.get('token'));
+        socket.on('message',d=>{
+
+            var fromInbox
+            var prevList=[]
+            chatHeadsRef.current.map((a,i)=>{
+                if(a.type===2 || (a.type===1 && a.id!==d.from)){
+                    prevList.push(a)
+                }else{
+                    fromInbox=a
+                }
+            })
+            fromInbox['isConnected']=true
+            fromInbox['message']={
+                own:false,
+                seen:false,
+                text:d.body,
+                timestamp:parseInt(d.timestamp/1000)
+            }
+            setChatHeads([fromInbox,...prevList])
+        })
+
+        socket.on('message_own',d=>{
+            console.log(d)
+            var fromInbox
+            var prevList=[]
+            chatHeadsRef.current.map((a,i)=>{
+                if(a.type===2 || (a.type===1 && a.id!==d.to)){
+                    prevList.push(a)
+                }else{
+                    fromInbox=a
+                }
+            })
+            fromInbox['isConnected']=true
+            fromInbox['message']={
+                own:true,
+                seen:false,
+                text:d.body,
+                timestamp:parseInt(d.timestamp/1000)
+            }
+            setChatHeads([fromInbox,...prevList])
+        })
+    },[])
+
 
     return (
 
@@ -521,3 +583,4 @@ const Messages = props => {
 }
 
 export default Messages;
+export {socket}
