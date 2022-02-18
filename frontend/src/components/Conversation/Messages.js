@@ -23,6 +23,10 @@ import {app} from '../../config/firebase_config'
 import {getStorage, ref, uploadBytesResumable, getDownloadURL} from "firebase/storage";
 import {sendMessage} from "../../action/messages";
 
+import io from 'socket.io-client'
+import {socket_endpoint} from "../../index";
+let socket;
+
 
 const cookies = new Cookies();
 
@@ -46,6 +50,11 @@ const Messages = props => {
     const msgRef = useRef()
 
     const storage = getStorage(app);
+
+    useEffect(async ()=>{
+        socket = await io(socket_endpoint);
+        socket.emit('token', cookies.get('token'));
+    },[])
 
     const [imagePreview, setImagePreview] = useState(null)
     const [imagePreview2, setImagePreview2] = useState(null)
@@ -521,3 +530,4 @@ const Messages = props => {
 }
 
 export default Messages;
+export {socket}

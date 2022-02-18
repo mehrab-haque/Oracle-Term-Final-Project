@@ -8,6 +8,7 @@ import allReducers from './reducer'
 import { Provider } from 'react-redux'
 
 export const api_base_url = 'http://localhost:8080/api/v1.0.0/'
+export const socket_endpoint='http://localhost:8080'
 
 const store = createStore(allReducers,
     window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__())
