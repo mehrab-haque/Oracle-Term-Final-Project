@@ -45,6 +45,34 @@ class MessagesRepository extends Repository {
         }
     }
 
+    getGroupMessages = async (data, id) => {
+        var placeId = id;
+        const msgQuery = 'select messages.msg,senders_receivers.timestamp,froms.user_id from messages,senders_receivers,froms  where  messages.place_id =:0  and senders_receivers.message_id=messages.id and froms.sender_id=senders_receivers.sender_id order by senders_receivers.timestamp ';
+        const msgParams = [placeId];
+        var msgResult = await this.query(msgQuery, msgParams)
+        var allRes;
+        allRes = msgResult.data.map(d => {
+            var obj = {
+                msg: d.MSG,
+                timestamp: d.TIMESTAMP,
+                isConnected: true
+            }
+
+            if (d.USER_ID === data.user_id) {
+                obj['own'] = true;
+
+            } else {
+                obj['own'] = false;
+            }
+            return obj;
+        })
+        console.log(allRes)
+        return {
+            success: true,
+            data: allRes
+        }
+    }
+
     send = async (data) => {
         let placeId;
         let senderId;

@@ -12,6 +12,9 @@ const profileRoutes=require('./route/profileRoutes')
 const messagesRoutes=require('./route/messagesRoutes')
 const groupRoutes=require('./route/groupRoutes')
 
+
+
+
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
@@ -31,6 +34,7 @@ const port=process.env.PORT || 8080;
 app.listen(port, () => {
     console.log(`Example app listening at port : ${port}`)
 })
+
 
 
 

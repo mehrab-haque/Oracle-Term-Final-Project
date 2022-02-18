@@ -24,6 +24,7 @@
     "react-toastify": "^8.1.0",
     "react-uuid": "^1.0.2",
     "redux": "^4.1.2",
+    "socket.io-client": "^2.3.0",
     "universal-cookie": "^4.0.4",
     "web-vitals": "^2.1.3"
   },
