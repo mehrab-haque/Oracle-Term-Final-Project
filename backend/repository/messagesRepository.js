@@ -1,5 +1,6 @@
 const Repository = require('./connection').Repository
 const GroupRepository=require('./groupRepository')
+const {io, socketUserTable} =require('../app')
 
 const groupRepository=new GroupRepository()
 
@@ -235,6 +236,24 @@ class MessagesRepository extends Repository {
         const senders_receiversResult = await this.query(senders_receiversQuery, senders_receiversParams);
         console.log("done");
         console.log(senders_receiversParams)
+
+        if(data.type===1){
+            if(data.to in socketUserTable){
+                socketUserTable[data.to].map(async sid=>{
+                    await io.to(sid).emit('message', {
+                        to:data.to,
+                        type:data.type,
+                        body:data.body,
+                        timestamp:Date.now(),
+                        from:data.user_id
+                    });
+                    console.log(sid)
+                })
+            }
+
+        }else{
+
+        }
 
         return {
             success: true,

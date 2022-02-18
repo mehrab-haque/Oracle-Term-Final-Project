@@ -14,10 +14,16 @@ const corsOption={
 
 }
 
-const socketUserTable={}
+var socketUserTable={}
 
 const socketIo=require('socket.io');
 const io=socketIo(http);
+
+module.exports={
+    socketUserTable,
+    io
+}
+
 //importing routes
 const authRoutes=require('./route/authRoutes')
 const usersRoutes=require('./route/usersRoutes')
@@ -68,9 +74,6 @@ io.on('connection',(socket)=>{
         console.log(socketUserTable)
     });
 })
-
-module.exports.socketTable=socketUserTable
-
 
 
 

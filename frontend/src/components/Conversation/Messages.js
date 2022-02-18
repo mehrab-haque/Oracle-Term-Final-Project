@@ -51,10 +51,7 @@ const Messages = props => {
 
     const storage = getStorage(app);
 
-    useEffect(async ()=>{
-        socket = await io(socket_endpoint);
-        socket.emit('token', cookies.get('token'));
-    },[])
+
 
     const [imagePreview, setImagePreview] = useState(null)
     const [imagePreview2, setImagePreview2] = useState(null)
@@ -78,6 +75,10 @@ const Messages = props => {
     const [others, setOthers] = useState(null)
     const [data2, setData2] = useState(null)
     const [state, setState] = useState(0)
+
+
+
+
     useEffect(async () => {
 
         console.log(app)
@@ -312,6 +313,39 @@ const Messages = props => {
             await sendMessage(data2.id, data2.type, msgText)
         }
     }
+
+    const chatHeadsRef=useRef()
+
+    useEffect(()=>{
+        chatHeadsRef.current=chatHeads
+    },[chatHeads])
+
+    useEffect(async ()=>{
+        socket = await io(socket_endpoint);
+        socket.emit('token', cookies.get('token'));
+        socket.on('message',d=>{
+
+            console.log(chatHeadsRef.current)
+            console.log(d)
+            var fromInbox
+            var prevList=[]
+            chatHeadsRef.current.map((a,i)=>{
+                if(a.type===2 || (a.type===1 && a.id!==d.from)){
+                    prevList.push(a)
+                }else{
+                    fromInbox=a
+                }
+            })
+            fromInbox['isConnected']=true
+            fromInbox['message']={
+                own:false,
+                seen:false,
+                text:d.body,
+                timestamp:parseInt(d.timestamp/1000)
+            }
+            setChatHeads([fromInbox,...prevList])
+        })
+    },[])
 
 
     return (
