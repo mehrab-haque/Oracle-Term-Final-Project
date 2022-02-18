@@ -37,7 +37,7 @@ console.log(memberGetResult);
         if(isAdminResult.data[0].COUNT===0)
             return {
                 success:false,
-                data:{}
+                data:{isRemoved:false}
             }
 
 
@@ -46,7 +46,10 @@ console.log(memberGetResult);
         const memberRemovalParams=[data.groupId,data.userId]
         const memberRemovalResult=await this.query(memberRemovalQuery,memberRemovalParams)
 
-        return memberRemovalResult;
+         return {
+                success:true,
+                data:{isRemoved:true}
+            }
     }
 
     add=async data=>{
