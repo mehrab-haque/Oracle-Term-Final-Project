@@ -21,7 +21,7 @@ class GroupRepository extends Repository{
         const memberGetQuery=`select users.id,users.name,users.image from users,members where group_id=:0 and users.id=members.user_id`
         const memberGetParams=[id]
         const memberGetResult=await this.query(memberGetQuery,memberGetParams)
-console.log(memberGetResult);
+//console.log(memberGetResult);
         return {
 
 		success:true,
@@ -33,7 +33,7 @@ console.log(memberGetResult);
  const isAdminQuery=`select count(*) as count from groups where created_by=:0 and id=:1`
         const isAdminParams=[data.user_id,data.groupId]
         const isAdminResult=await this.query(isAdminQuery,isAdminParams)
- console.log(isAdminResult);
+ //console.log(isAdminResult);
         if(isAdminResult.data[0].COUNT===0)
             return {
                 success:false,
