@@ -325,8 +325,6 @@ const Messages = props => {
         socket.emit('token', cookies.get('token'));
         socket.on('message',d=>{
 
-            console.log(chatHeadsRef.current)
-            console.log(d)
             var fromInbox
             var prevList=[]
             chatHeadsRef.current.map((a,i)=>{
@@ -339,6 +337,27 @@ const Messages = props => {
             fromInbox['isConnected']=true
             fromInbox['message']={
                 own:false,
+                seen:false,
+                text:d.body,
+                timestamp:parseInt(d.timestamp/1000)
+            }
+            setChatHeads([fromInbox,...prevList])
+        })
+
+        socket.on('message_own',d=>{
+            console.log(d)
+            var fromInbox
+            var prevList=[]
+            chatHeadsRef.current.map((a,i)=>{
+                if(a.type===2 || (a.type===1 && a.id!==d.to)){
+                    prevList.push(a)
+                }else{
+                    fromInbox=a
+                }
+            })
+            fromInbox['isConnected']=true
+            fromInbox['message']={
+                own:true,
                 seen:false,
                 text:d.body,
                 timestamp:parseInt(d.timestamp/1000)

@@ -247,7 +247,17 @@ class MessagesRepository extends Repository {
                         timestamp:Date.now(),
                         from:data.user_id
                     });
-                    console.log(sid)
+                })
+            }
+            if(data.user_id in socketUserTable){
+                socketUserTable[data.user_id].map(async sid=>{
+                    await io.to(sid).emit('message_own', {
+                        to:data.to,
+                        type:data.type,
+                        body:data.body,
+                        timestamp:Date.now(),
+                        from:data.user_id
+                    });
                 })
             }
 
