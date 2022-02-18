@@ -9,6 +9,49 @@ class GroupRepository extends Repository{
         super();
     }
 
+
+
+    getMembers=async (data,id)=>{
+
+
+       
+
+
+
+        const memberGetQuery=`select users.id,users.name,users.image from users,members where group_id=:0 and users.id=members.user_id`
+        const memberGetParams=[id]
+        const memberGetResult=await this.query(memberGetQuery,memberGetParams)
+console.log(memberGetResult);
+        return {
+
+		success:true,
+                data:memberGetResult.data
+       }
+    }
+   remove=async data=>{
+
+ const isAdminQuery=`select count(*) as count from groups where created_by=:0 and id=:1`
+        const isAdminParams=[data.user_id,data.groupId]
+        const isAdminResult=await this.query(isAdminQuery,isAdminParams)
+ console.log(isAdminResult);
+        if(isAdminResult.data[0].COUNT===0)
+            return {
+                success:false,
+                data:{isRemoved:false}
+            }
+
+
+
+        const memberRemovalQuery=`delete from members where group_id=:0 and user_id=:1`
+        const memberRemovalParams=[data.groupId,data.userId]
+        const memberRemovalResult=await this.query(memberRemovalQuery,memberRemovalParams)
+
+         return {
+                success:true,
+                data:{isRemoved:true}
+            }
+    }
+
     add=async data=>{
 
 

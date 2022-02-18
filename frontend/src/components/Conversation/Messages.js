@@ -5,6 +5,7 @@ import {logout} from "../../action/auth"
 import {checkAuth} from "../../action/auth"
 import Inboxes from "./Inbox/Inboxes.js"
 import Members from "./Inbox/Members.js"
+import Others from "./Inbox/Others.js"
 import "./messages.css"
 import MessageContainer from "../Message/MessageContainer"
 import Navbar from "../Navbar"
@@ -65,9 +66,12 @@ const Messages = props => {
     const [image,setImage]=useState(null)
     const [image2,setImage2]=useState(null)
     const [data,setData]=useState(null)
- const [data2,setData2]=useState(null)
+    const [members,setMembers]=useState(null)
+const [others,setOthers]=useState(null)
+    const [data2,setData2]=useState(null)
     const [state,setState]=useState(0)
     useEffect(async () => {
+
         console.log(app)
         axios.get('http://localhost:8080/api/v1.0.0/users/list', {headers: {authorization: 'Bearer ' + cookies.get('token')}})
             .then(res =>{
@@ -107,16 +111,46 @@ const Messages = props => {
 
 const inboxClick = (data) => {
   
-      setState(1);
+     
 
 setData2(data);
-console.log(data.id);
+if(data.type===1){
+  setState(1);
  axios.get('http://localhost:8080/api/v1.0.0/message/get/'+data.id, {headers: {authorization: 'Bearer ' + cookies.get('token')}})
                     .then(res => {
                      setData(res.data);
                       
                     })
                     .catch(e => console.log(e))
+}
+else{
+ setState(2);
+ axios.get('http://localhost:8080/api/v1.0.0/group/getMembers/'+data.id, {headers: {authorization: 'Bearer ' + cookies.get('token')}})
+                    .then(res => {
+                     setMembers(res.data);
+              let v = chatHeads.map(c=>{
+                      let flag=0;
+                          res.data.forEach(r=>{
+				if(c.type==2|| c.type===1 && c.id===r.ID){
+					flag=1;
+	
+					}
+
+					})
+if(flag===0){
+return c;
+}
+else return null;
+
+			})
+setOthers(v);
+                      
+                    })
+                    .catch(e => console.log(e))
+
+}
+
+
     };
 
     const onImageChange = event => {
@@ -275,7 +309,8 @@ const onImageChange2 = event => {
 
 
     return (
-        <>
+      
+<>
             <Navbar/>
 
             <Dialog onClose={handleClose} open={open}>
@@ -410,7 +445,7 @@ const onImageChange2 = event => {
                             <div className="chatBoxWrapper">
                              
 {
-state===1?
+state===1 || state===2?
 (
 <>   <div className="chatBoxTop">
 <div>
@@ -449,16 +484,32 @@ state===1?
 
 
                             <div className="chatOnlineWrapper">
+{ state==2?<b>Group Members</b>:null}
                                  {
-                                   state && chatHeads.map((c,i) => {
+                                   state==2 && members && members.map((c,i) => {
                                         return (
-                                           <div onClick={()=>inboxClick(c)}>
-                                            <Members key={i} data={c} />
+                                           <div>
+                                            <Members key={i} data={c} groupData={data2}/>
 
                                             </div>
                                         )
                                     })
                                 }
+{ state==2?<b>Add Members</b>:null}
+
+       {
+                                   state==2 && others && others.map((o,i) => {
+                                if(o!=undefined){       
+				 return (
+                                           <div >
+                                            <Others key={i} data={o} groupData={data2} />
+
+                                            </div>
+                                        )}
+                                    })
+                                }
+
+
                             </div>
                         </div>
 
