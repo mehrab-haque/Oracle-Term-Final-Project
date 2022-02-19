@@ -64,6 +64,26 @@ io.on('connection',(socket)=>{
             console.log(socketUserTable)
         })
     })
+socket.on('typing',data=>{
+
+console.log('typing',data);
+console.log(data.name)
+socketUserTable[data.id] && socketUserTable[data.id].map(async sid=>{
+                    await io.to(sid).emit('message_typing' ,data.name)
+
+})
+})
+
+socket.on('typing_ended',data=>{
+
+
+socketUserTable[data.id] && socketUserTable[data.id].map(async sid=>{
+                    await io.to(sid).emit('end_typing' ,null)
+
+})
+})
+
+
     socket.on('disconnect', function() {
         Object.keys(socketUserTable).map(k=>{
             if(socketUserTable[k].includes(socket.id))
