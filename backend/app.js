@@ -66,8 +66,8 @@ io.on('connection',(socket)=>{
     })
 socket.on('typing',data=>{
 
-console.log('typing',data);
-console.log(data.name)
+//console.log('typing',data);
+//console.log(data.name)
 socketUserTable[data.id] && socketUserTable[data.id].map(async sid=>{
                     await io.to(sid).emit('message_typing' ,data.name)
 
