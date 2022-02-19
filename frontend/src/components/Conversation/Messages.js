@@ -58,6 +58,7 @@ const Messages = props => {
     const nameRef = useRef()
     const statusRef = useRef()
     const groupNameRef = useRef()
+    const [user,setUser]=useState(null);
 
     const dispatch = useDispatch();
 
@@ -77,6 +78,15 @@ const Messages = props => {
     const [state, setState] = useState(0)
 
     var messagesRef=useRef()
+
+
+
+
+ const handleType=()=>{
+
+socket.emit('typing',data2)
+
+}
 
 
 
@@ -107,6 +117,9 @@ const Messages = props => {
         checkAuth(dispatcher);
         console.log(profileData)
     }, [])
+
+ 
+
     const handleClick = () => {
         setOpen(true);
     }
@@ -309,6 +322,9 @@ const Messages = props => {
 
 
     const sendMessageClick = async () => {
+
+       setUser(null);
+  socket.emit('typing_ended',data2)
         const msgText = msgRef.current.value
         if (msgText.trim().length === 0)
             showToast(`Message can't be empty`)
@@ -325,6 +341,15 @@ const Messages = props => {
 
     useEffect(async ()=>{
         socket = await io(socket_endpoint);
+
+socket.on('message_typing',name=>{
+setUser(name)
+})
+
+socket.on('end_typing',name=>{
+setUser(null)
+})
+
         socket.emit('token', cookies.get('token'));
         socket.on('message',d=>{
 
@@ -531,7 +556,10 @@ const Messages = props => {
                                                     </div>
                                                 </div>
                                                 <div className="chatBoxBottom">
+
+{user?`${user} is typing .....`:null}
                                                     <TextField
+						        onChange={handleType}
                                                         inputRef={msgRef}
                                                         fullWidth
                                                         multiline
