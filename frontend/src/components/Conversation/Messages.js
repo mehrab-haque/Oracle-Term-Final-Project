@@ -76,6 +76,8 @@ const Messages = props => {
     const [data2, setData2] = useState(null)
     const [state, setState] = useState(0)
 
+    var messagesRef=useRef()
+
 
 
 
@@ -126,6 +128,7 @@ const Messages = props => {
             axios.get('http://localhost:8080/api/v1.0.0/message/get/' + data.id, {headers: {authorization: 'Bearer ' + cookies.get('token')}})
                 .then(res => {
                     setData(res.data);
+                    messagesRef.current=res.data
 
                 })
                 .catch(e => console.log(e))
@@ -342,10 +345,16 @@ const Messages = props => {
                 timestamp:parseInt(d.timestamp/1000)
             }
             setChatHeads([fromInbox,...prevList])
+            messagesRef.current=[...messagesRef.current,{
+                msg:d.body,
+                isConnected:true,
+                own:false, timestamp:parseInt(d.timestamp/1000)
+            }]
+            setData(messagesRef.current)
         })
 
         socket.on('message_own',d=>{
-            console.log(d)
+
             var fromInbox
             var prevList=[]
             chatHeadsRef.current.map((a,i)=>{
@@ -363,6 +372,12 @@ const Messages = props => {
                 timestamp:parseInt(d.timestamp/1000)
             }
             setChatHeads([fromInbox,...prevList])
+            messagesRef.current=[...messagesRef.current,{
+                msg:d.body,
+                isConnected:true,
+                own:true, timestamp:parseInt(d.timestamp/1000)
+            }]
+            setData(messagesRef.current)
         })
     },[])
 
