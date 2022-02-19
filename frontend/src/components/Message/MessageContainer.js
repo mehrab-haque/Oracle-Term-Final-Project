@@ -4,9 +4,11 @@ import "./message.css";
 
 const  MessageContainer= (props)=>{
 
+    var [messages,setMessage]=useState(props.data)
+
   useEffect(() => {
   
-        console.log('data',props.data)
+        setMessage(props.data)
      }, [props.data])
 
   return (
@@ -14,7 +16,7 @@ const  MessageContainer= (props)=>{
 
 {
 
-props.data && props.data.map(d=>{
+messages && messages.map(d=>{
 
 return (
 
