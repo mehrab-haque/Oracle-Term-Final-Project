@@ -46,7 +46,6 @@ const cookies=new Cookies();
             progress: undefined,
         });
     }
-
     return (
         <div>
             <Dialog open={loading}>

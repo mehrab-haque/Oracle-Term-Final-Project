@@ -1,8 +1,16 @@
-import { useEffect, useState } from "react";
+import {useEffect, useRef, useState} from "react";
 import Message from "./Message.js"
 import "./message.css";
 
+const AlwaysScrollToBottom = () => {
+    const elementRef = useRef();
+    useEffect(() => elementRef.current.scrollIntoView());
+    return <div ref={elementRef} />;
+}
+
 const  MessageContainer= (props)=>{
+
+
 
     var [messages,setMessage]=useState(props.data)
 
@@ -12,7 +20,7 @@ const  MessageContainer= (props)=>{
      }, [props.data])
 
   return (
-    <div >
+    <div  >
 
 {
 
@@ -20,14 +28,16 @@ messages && messages.map(d=>{
 
 return (
 
-  <Message data={d} />
+  <Message  data={d} />
 )
 
 
 })
 }
 
-                                  
+<AlwaysScrollToBottom/>
+
+
                                   
      </div>     
 )

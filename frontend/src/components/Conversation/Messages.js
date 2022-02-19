@@ -25,6 +25,7 @@ import {sendMessage} from "../../action/messages";
 
 import io from 'socket.io-client'
 import {socket_endpoint} from "../../index";
+
 let socket;
 
 
@@ -47,10 +48,10 @@ const useStyles = makeStyles({
 
 const Messages = props => {
 
-    const msgRef = useRef()
+    const msgRef = useRef(null)
+    const data2Ref=useRef(null)
 
     const storage = getStorage(app);
-
 
 
     const [imagePreview, setImagePreview] = useState(null)
@@ -58,7 +59,7 @@ const Messages = props => {
     const nameRef = useRef()
     const statusRef = useRef()
     const groupNameRef = useRef()
-    const [user,setUser]=useState(null);
+    const [user, setUser] = useState(null);
 
     const dispatch = useDispatch();
 
@@ -77,18 +78,14 @@ const Messages = props => {
     const [data2, setData2] = useState(null)
     const [state, setState] = useState(0)
 
-    var messagesRef=useRef()
+    var messagesRef = useRef()
 
 
+    const handleType = () => {
 
+        socket.emit('typing', data2)
 
- const handleType=()=>{
-
-socket.emit('typing',data2)
-
-}
-
-
+    }
 
 
     useEffect(async () => {
@@ -118,7 +115,6 @@ socket.emit('typing',data2)
         console.log(profileData)
     }, [])
 
- 
 
     const handleClick = () => {
         setOpen(true);
@@ -136,12 +132,13 @@ socket.emit('typing',data2)
     const inboxClick = (data) => {
 
         setData2(data);
+        data2Ref.current=data
         if (data.type === 1) {
             setState(1);
             axios.get('http://localhost:8080/api/v1.0.0/message/get/' + data.id, {headers: {authorization: 'Bearer ' + cookies.get('token')}})
                 .then(res => {
                     setData(res.data);
-                    messagesRef.current=res.data
+                    messagesRef.current = res.data
 
                 })
                 .catch(e => console.log(e))
@@ -172,6 +169,7 @@ socket.emit('typing',data2)
             axios.get('http://localhost:8080/api/v1.0.0/message/group/get/' + data.id, {headers: {authorization: 'Bearer ' + cookies.get('token')}})
                 .then(res => {
                     setData(res.data);
+                    messagesRef.current = res.data
 
                 })
                 .catch(e => console.log(e))
@@ -323,8 +321,8 @@ socket.emit('typing',data2)
 
     const sendMessageClick = async () => {
 
-       setUser(null);
-  socket.emit('typing_ended',data2)
+        setUser(null);
+        socket.emit('typing_ended', data2)
         const msgText = msgRef.current.value
         if (msgText.trim().length === 0)
             showToast(`Message can't be empty`)
@@ -333,78 +331,143 @@ socket.emit('typing',data2)
         }
     }
 
-    const chatHeadsRef=useRef()
+    const chatHeadsRef = useRef()
 
-    useEffect(()=>{
-        chatHeadsRef.current=chatHeads
-    },[chatHeads])
+    useEffect(() => {
+        chatHeadsRef.current = chatHeads
+    }, [chatHeads])
 
-    useEffect(async ()=>{
+    useEffect(async () => {
         socket = await io(socket_endpoint);
 
-socket.on('message_typing',name=>{
-setUser(name)
-})
+        socket.on('message_typing', name => {
+            setUser(name)
+        })
 
-socket.on('end_typing',name=>{
-setUser(null)
-})
+        socket.on('end_typing', name => {
+            setUser(null)
+        })
 
         socket.emit('token', cookies.get('token'));
-        socket.on('message',d=>{
-
+        socket.on('message', d => {
             var fromInbox
-            var prevList=[]
-            chatHeadsRef.current.map((a,i)=>{
-                if(a.type===2 || (a.type===1 && a.id!==d.from)){
+            var prevList = []
+            chatHeadsRef.current.map((a, i) => {
+                if (a.type === 2 || (a.type === 1 && a.id !== d.from)) {
                     prevList.push(a)
-                }else{
-                    fromInbox=a
+                } else {
+                    fromInbox = a
                 }
             })
-            fromInbox['isConnected']=true
-            fromInbox['message']={
-                own:false,
-                seen:false,
-                text:d.body,
-                timestamp:parseInt(d.timestamp/1000)
+            fromInbox['isConnected'] = true
+            fromInbox['message'] = {
+                own: false,
+                seen: false,
+                text: d.body,
+                timestamp: parseInt(d.timestamp / 1000)
             }
-            setChatHeads([fromInbox,...prevList])
-            messagesRef.current=[...messagesRef.current,{
-                msg:d.body,
-                isConnected:true,
-                own:false, timestamp:parseInt(d.timestamp/1000)
+            setChatHeads([fromInbox, ...prevList])
+            if(data2Ref.current.id===d.from){
+                messagesRef.current = [...messagesRef.current, {
+                    msg: d.body,
+                    isConnected: true,
+                    own: false, timestamp: parseInt(d.timestamp / 1000)
+                }]
+                setData(messagesRef.current)
+            }
+
+        })
+
+        socket.on('message_group', d => {
+            console.log('message group received')
+
+            var fromInbox
+            var prevList = []
+            console.log(chatHeadsRef.current)
+            console.log(d)
+            chatHeadsRef.current.map((a, i) => {
+                if (a.type === 1 || (a.type === 2 && a.id !== d.groupId)) {
+                    prevList.push(a)
+                } else {
+                    fromInbox = a
+                }
+            })
+            fromInbox['message'] = {
+                own: false,
+                seen: false,
+                text: d.body,
+                timestamp: parseInt(d.timestamp / 1000)
+            }
+
+
+
+            setChatHeads([fromInbox, ...prevList])
+
+
+            if(data2Ref.current.id===d.groupId){
+                messagesRef.current = [...messagesRef.current, {
+                    msg: d.body,
+                    isConnected: true,
+                    own: false, timestamp: parseInt(d.timestamp / 1000)
+                }]
+                setData(messagesRef.current)
+            }
+
+        })
+
+        socket.on('message_own', d => {
+
+            var fromInbox
+            var prevList = []
+            chatHeadsRef.current.map((a, i) => {
+                if (a.type === 2 || (a.type === 1 && a.id !== d.to)) {
+                    prevList.push(a)
+                } else {
+                    fromInbox = a
+                }
+            })
+            fromInbox['isConnected'] = true
+            fromInbox['message'] = {
+                own: true,
+                seen: false,
+                text: d.body,
+                timestamp: parseInt(d.timestamp / 1000)
+            }
+            setChatHeads([fromInbox, ...prevList])
+            messagesRef.current = [...messagesRef.current, {
+                msg: d.body,
+                isConnected: true,
+                own: true, timestamp: parseInt(d.timestamp / 1000)
             }]
             setData(messagesRef.current)
         })
 
-        socket.on('message_own',d=>{
-
+        socket.on('message_own_group', d => {
+            console.log('message group send')
             var fromInbox
-            var prevList=[]
-            chatHeadsRef.current.map((a,i)=>{
-                if(a.type===2 || (a.type===1 && a.id!==d.to)){
+            var prevList = []
+            chatHeadsRef.current.map((a, i) => {
+                if (a.type === 1 || (a.type === 2 && a.id !== d.to)) {
                     prevList.push(a)
-                }else{
-                    fromInbox=a
+                } else {
+                    fromInbox = a
                 }
             })
-            fromInbox['isConnected']=true
-            fromInbox['message']={
-                own:true,
-                seen:false,
-                text:d.body,
-                timestamp:parseInt(d.timestamp/1000)
+            fromInbox['message'] = {
+                own: true,
+                seen: false,
+                text: d.body,
+                timestamp: parseInt(d.timestamp / 1000)
             }
-            setChatHeads([fromInbox,...prevList])
-            messagesRef.current=[...messagesRef.current,{
-                msg:d.body,
-                isConnected:true,
-                own:true, timestamp:parseInt(d.timestamp/1000)
+            setChatHeads([fromInbox, ...prevList])
+            messagesRef.current = [...messagesRef.current, {
+                msg: d.body,
+                isConnected: true,
+                own: true, timestamp: parseInt(d.timestamp / 1000)
             }]
             setData(messagesRef.current)
         })
-    },[])
+    }, [])
 
 
     return (
@@ -557,9 +620,9 @@ setUser(null)
                                                 </div>
                                                 <div className="chatBoxBottom">
 
-{user?`${user} is typing .....`:null}
+                                                    {user ? `${user} is typing .....` : null}
                                                     <TextField
-						        onChange={handleType}
+                                                        onChange={handleType}
                                                         inputRef={msgRef}
                                                         fullWidth
                                                         multiline
