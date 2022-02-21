@@ -31,7 +31,7 @@ const profileRoutes=require('./route/profileRoutes')
 const messagesRoutes=require('./route/messagesRoutes')
 const groupRoutes=require('./route/groupRoutes')
 
-
+const reactRoutes=require('./route/reactRoutes')
 
 app.use(cors(corsOption));
 app.use(bodyParser.json());
@@ -46,7 +46,7 @@ app.use(apiVersion + '/users', usersRoutes);
 app.use(apiVersion + '/user', profileRoutes);
 app.use(apiVersion + '/message', messagesRoutes);
 app.use(apiVersion + '/group', groupRoutes);
-
+app.use(apiVersion + '/react', reactRoutes);
 const port=process.env.PORT || 8080;
 
 http.listen(port, () => {
