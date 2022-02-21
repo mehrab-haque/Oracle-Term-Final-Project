@@ -375,9 +375,11 @@ const Messages = props => {
             setChatHeads([fromInbox, ...prevList])
             if(data2Ref.current.id===d.from){
                 messagesRef.current = [...messagesRef.current, {
+                    id:d.id,
                     msg: d.body,
                     isConnected: true,
-                    own: false, timestamp: parseInt(d.timestamp / 1000)
+                    own: false,
+                    timestamp: parseInt(d.timestamp / 1000)
                 }]
                 setData(messagesRef.current)
             }
@@ -412,6 +414,7 @@ const Messages = props => {
 
             if(data2Ref.current.id===d.groupId){
                 messagesRef.current = [...messagesRef.current, {
+                    id:d.id,
                     msg: d.body,
                     isConnected: true,
                     own: false, timestamp: parseInt(d.timestamp / 1000)
@@ -441,6 +444,7 @@ const Messages = props => {
             }
             setChatHeads([fromInbox, ...prevList])
             messagesRef.current = [...messagesRef.current, {
+                id:d.id,
                 msg: d.body,
                 isConnected: true,
                 own: true, timestamp: parseInt(d.timestamp / 1000)
@@ -467,6 +471,7 @@ const Messages = props => {
             }
             setChatHeads([fromInbox, ...prevList])
             messagesRef.current = [...messagesRef.current, {
+                id:d.id,
                 msg: d.body,
                 isConnected: true,
                 own: true, timestamp: parseInt(d.timestamp / 1000)
