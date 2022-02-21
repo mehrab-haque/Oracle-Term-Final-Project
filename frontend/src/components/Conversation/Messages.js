@@ -24,7 +24,7 @@ import {getStorage, ref, uploadBytesResumable, getDownloadURL} from "firebase/st
 import {sendMessage} from "../../action/messages";
 
 import io from 'socket.io-client'
-import {socket_endpoint} from "../../index";
+import {api_base_url, socket_endpoint} from "../../index";
 
 let socket;
 
@@ -109,10 +109,16 @@ const Messages = props => {
 
     }, [])
 
+    const [reactList,setReactList]=useState([])
 
-    useEffect(() => {
+
+    useEffect(async () => {
         checkAuth(dispatcher);
         console.log(profileData)
+
+        var reactsResult=await axios.get(`${api_base_url}react/list`,{headers: {authorization: 'Bearer ' + cookies.get('token')}})
+        setReactList(reactsResult.data)
+
     }, [])
 
 
@@ -615,7 +621,7 @@ const Messages = props => {
                                             <>
                                                 <div className="chatBoxTop">
                                                     <div>
-                                                        < MessageContainer data={data}/>
+                                                        < MessageContainer reacts={reactList} data={data}/>
                                                     </div>
                                                 </div>
                                                 <div className="chatBoxBottom">

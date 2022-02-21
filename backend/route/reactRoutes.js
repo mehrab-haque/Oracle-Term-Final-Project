@@ -8,6 +8,7 @@ const reactController=new ReactController()
 
 
 router.get('/list',authMiddleware,reactController.getList)
+router.post('/list_msg',authMiddleware,reactController.getListForAMessage)
 
 router.post('/create',authMiddleware,reactController.createReact)
 module.exports = router;

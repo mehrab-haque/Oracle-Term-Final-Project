@@ -28,7 +28,7 @@ messages && messages.map(d=>{
 
 return (
 
-  <Message  data={d} />
+  <Message key={d.id} reacts={props.reacts}  data={d} />
 )
 
 

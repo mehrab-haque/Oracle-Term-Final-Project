@@ -8,6 +8,42 @@
     display: flex;
 }
 
+.reactButton{
+    font-weight: bold;
+    font-size: 1.5em;
+    cursor: pointer;
+}
+
+.reactButton:hover{
+    transform: scale(1.1);
+}
+
+.reacts-container{
+    display: flex;
+
+}
+
+.hidden{
+    display: none;
+}
+
+.reacts-container img{
+    height:25px;
+    width:25px;
+    cursor: pointer;
+}
+
+.single-react-container{
+    margin-left: 10px;
+}
+
+.react-label{
+
+    font-weight: bold;
+    margin-top: -24px;
+    font-size: 2em;
+}
+
 .messageImg {
   width: 32px;
   height: 32px;
