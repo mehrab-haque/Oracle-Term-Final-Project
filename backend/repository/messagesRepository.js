@@ -244,6 +244,7 @@ class MessagesRepository extends Repository {
             if(data.to in socketUserTable){
                 socketUserTable[data.to].map(async sid=>{
                     await io.to(sid).emit('message', {
+                        id:msgIdResult.data[0].ID,
                         to:data.to,
                         type:data.type,
                         body:data.body,
@@ -255,6 +256,7 @@ class MessagesRepository extends Repository {
             if(data.user_id in socketUserTable){
                 socketUserTable[data.user_id].map(async sid=>{
                     await io.to(sid).emit('message_own', {
+                        id:msgIdResult.data[0].ID,
                         to:data.to,
                         type:data.type,
                         body:data.body,
@@ -268,6 +270,7 @@ class MessagesRepository extends Repository {
             if(data.user_id in socketUserTable){
                 socketUserTable[data.user_id].map(async sid=>{
                     await io.to(sid).emit('message_own_group', {
+                        id:msgIdResult.data[0].ID,
                         to:data.to,
                         type:data.type,
                         body:data.body,
@@ -285,6 +288,7 @@ class MessagesRepository extends Repository {
                         console.log(m.USER_ID)
                         socketUserTable[m.USER_ID+''].map(async sid=>{
                             await io.to(sid).emit('message_group', {
+                                id:msgIdResult.data[0].ID,
                                 to:m.USER_ID,
                                 type:data.type,
                                 body:data.body,
