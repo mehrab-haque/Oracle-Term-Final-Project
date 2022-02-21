@@ -5,14 +5,39 @@ import {api_base_url} from "../../index";
 import Cookies from "universal-cookie";
 import {socket} from "../Conversation/Messages";
 //import { format } from "timeago.js";
+import DialogTitle from '@mui/material/DialogTitle';
+import Dialog from '@mui/material/Dialog';
+import TextField from '@mui/material/TextField';
+import {makeStyles} from "@mui/styles"
+import DialogContent from "@mui/material/DialogContent";
+import Button from '@mui/material/Button';
 const cookies = new Cookies();
+
+const useStyles = makeStyles({
+
+
+    root: {
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center"
+
+    }
+
+
+})
 
 export default function Message(props) {
 
-    const [reactsContainer,setReactsContainer]=useState(false)
+const classes = useStyles()
 
-    const [reactionList,setReactionList]=useState([])
+const [reactsContainer,setReactsContainer]=useState(false)
 
+const [reactionList,setReactionList]=useState([])
+const [open,setOpen]=useState(false);
+const handleClose=()=>{
+setOpen(false)
+
+}
     const isReact=id=>{
         var result=false
         reactionList.map(r=>{
@@ -21,6 +46,10 @@ export default function Message(props) {
         })
         return result
     }
+const reactionClick=()=>{
+
+setOpen(true)
+}
 
     const addReact=async reactId=>{
         var reactResult=await axios.post(`${api_base_url}react/create`,{
@@ -79,7 +108,7 @@ export default function Message(props) {
                         src="https://buet-edu-1.s3.ap-south-1.amazonaws.com/mehrab/venn_icon.png"
                         alt=""
                     />
-                    <div>
+                    <div onClick={reactionClick}>
                         {
                             reactionList.length
                         }
@@ -101,11 +130,37 @@ export default function Message(props) {
                   )
               }
           </div>
-
+<div>
+<button style={{marginTop:"20px"}}>Reply</button>
+</div>
 
       </div>
+
+
 <p className={props.data.own?"seen own":"seen"}> Seen </p>
       <div className="messageBottom">{props.data.timestamp}</div>
+
+   <Dialog onClose={handleClose} open={open}>
+                <DialogTitle>People who reacted</DialogTitle>
+
+                <DialogContent className={classes.root}>
+{reactionList.map((r,i)=>{
+return (
+<div className={"conversation"} key={i}>
+<img className="conversationImg" src={r.image}/>
+<span className="conversationName">{r.name}</span>
+
+</div>
+
+)
+
+})}
+                  
+
+                   
+
+                </DialogContent>
+            </Dialog>
     </div>
   );
 }

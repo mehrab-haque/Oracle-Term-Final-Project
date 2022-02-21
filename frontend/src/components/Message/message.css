@@ -3,16 +3,33 @@
   flex-direction: column;
   margin-top: 20px;
 }
-
+.conversation {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+  margin-top: 20px;
+}
 .messageTop{
     display: flex;
 }
-
+.conversationName {
+  font-weight: 500;
+   font-size:20px;
+}
 .reactButton{
     font-weight: bold;
     font-size: 1.5em;
     cursor: pointer;
 }
+.conversationImg {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 20px;
+}
+
 
 .reactButton:hover{
     transform: scale(1.1);
