@@ -130,9 +130,13 @@ setOpen(true)
                   )
               }
           </div>
-
+<div>
+<button style={{marginTop:"20px"}}>Reply</button>
+</div>
 
       </div>
+
+
 <p className={props.data.own?"seen own":"seen"}> Seen </p>
       <div className="messageBottom">{props.data.timestamp}</div>
 
