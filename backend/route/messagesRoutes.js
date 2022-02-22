@@ -10,6 +10,8 @@ const messagesController=new MessagesController()
 router.post('/send',authMiddleware,messagesController.send)
 router.get('/get/:id',authMiddleware,messagesController.get)
 router.get('/group/get/:id',authMiddleware,messagesController.getGroup)
+
 router.get('/replies/get/:id',authMiddleware,messagesController.getReplies)
+router.get('/group/get/deletedMessages/:id',authMiddleware,messagesController.getDeletedMessages)
 
 module.exports = router;

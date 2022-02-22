@@ -8,6 +8,49 @@ class MessagesRepository extends Repository {
     constructor() {
         super();
     }
+
+   getDeletedMessages=async (data,id)=>{
+        const query='select count(*) as count from groups where id=:0 and created_by =:1'
+        const params=[id,data.user_id]
+        var result=await this.query(query,params)
+
+        if(result.data[0].COUNT>0){
+	const msgQuery='select * from deleted_messages where place_id=:0'
+        const msgParams=[id]
+        var msgResult=await this.query(msgQuery,msgParams)
+console.log(msgResult);
+
+return{
+
+success:true,
+data:msgResult.data
+}
+
+		}
+else{
+return{
+
+success:false,
+data:{}
+}
+
+}
+return{
+
+success:true,
+data:{}
+}
+
+
+
+
+  
+    }
+
+
+
+
+
     getMessages = async (data, id) => {
         const query = 'select id from inboxes where uid_1=:0 and uid_2 =:1';
         const params = [Math.min(data.user_id, id), Math.max(data.user_id, id)]
