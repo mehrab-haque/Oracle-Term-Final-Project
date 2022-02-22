@@ -1,3 +1,8 @@
-var a=parseInt(Date.now()/1000)
 
-console.log(a)
+const formatDate=date=>{
+    return date.toLocaleDateString('en-GB', {
+        day: '2-digit', month: 'short', year: 'numeric'
+    }).replace(/ /g, '-');
+}
+
+console.log(formatDate(new Date()))

@@ -108,13 +108,22 @@ export default function Message(props) {
 
     }, [])
 
+    const removeClick=async ()=>{
+        var reactsResult = await axios.post(`${api_base_url}message/delete`,{
+            id:props.data.id,
+            place:props.data2.id,
+            type:props.data2.type
+        },  {headers: {authorization: 'Bearer ' + cookies.get('token')}})
+    }
+
 
 
     if(replies.length===0){
         return(
             <div style={props.data.own?{paddingLeft:'100px',marginBottom:'55px'}:{paddingRight:'100px',marginBottom:'70px'}}>
                 <MessageBox
-                    removeButton={true}
+                    removeButton={props.data.own}
+                    onRemoveMessageClick={removeClick}
                     position={props.data.own?'right':'left'}
                     type={'text'}
                     date={new Date(props.data.timestamp*1000)}
@@ -247,7 +256,8 @@ else
     return(
         <div style={props.data.own?{paddingLeft:'100px'}:{paddingRight:'100px'}}>
         <MessageBox
-            removeButton={true}
+            removeButton={props.data.own}
+            onRemoveMessageClick={removeClick}
             reply={{
                 photoURL: 'https://facebook.github.io/react/img/logo.svg',
                 title: `${props.data.own?'You':props.data2.name} replied to ${replies.length} message${replies.length>1?'s':''}`,
