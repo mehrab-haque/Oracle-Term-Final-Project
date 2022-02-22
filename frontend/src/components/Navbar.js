@@ -90,8 +90,6 @@ export default function NavBar() {
 const signoutClick=()=>{
 socket.disconnect()
 logout(dispatch);
-
-
 }
   const menuId = 'primary-search-account-menu';
   const renderMenu = (

@@ -4,6 +4,7 @@ import "./message.css";
 
 const AlwaysScrollToBottom = () => {
     const elementRef = useRef();
+
     useEffect(() => elementRef.current.scrollIntoView());
     return <div ref={elementRef} />;
 }
@@ -20,7 +21,7 @@ const  MessageContainer= (props)=>{
      }, [props.data])
 
   return (
-    <div  >
+    <div className={'messages-container'} >
 
 {
 
@@ -28,7 +29,7 @@ messages && messages.map(d=>{
 
 return (
 
-  <Message key={d.id} reacts={props.reacts}  data={d} />
+  <Message replies={props.replies} data2={props.data2} modifyReplies={props.modifyReplies} key={d.id} reacts={props.reacts}  data={d} />
 )
 
 

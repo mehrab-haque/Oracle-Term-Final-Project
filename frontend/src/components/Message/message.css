@@ -37,7 +37,15 @@
 
 .reacts-container{
     display: flex;
-
+    float:right;
+    margin-top: 7px;
+    margin-right: 10px;
+}
+.reacts-container-left{
+    display: flex;
+    float:left;
+    margin-top: 7px;
+    margin-right: 10px;
 }
 
 .hidden{
@@ -45,6 +53,12 @@
 }
 
 .reacts-container img{
+    height:25px;
+    width:25px;
+    cursor: pointer;
+}
+
+.reacts-container-left img{
     height:25px;
     width:25px;
     cursor: pointer;
@@ -85,6 +99,47 @@
 
 .message.own{
     align-items: flex-end;
+}
+
+.bg{
+    background-color: #42b72a;
+}
+
+.messages-container{
+    background: white;
+    background-image: radial-gradient(#0090ff 1px, transparent 0);
+    background-size: 20px 20px;
+    background-position: -19px -19px;
+    height:calc(100vh - 122px);
+    margin-top: -24px;
+    overflow-x:scroll;
+    overflow-x: hidden;
+    margin-right: -25px;
+    margin-left: -25px;
+}
+
+.reply,.reply-own{
+    margin-top: 4px;
+    max-width:300px;
+    border-radius: 8px;
+    background-color: #f0f2f5;
+    color: cornflowerblue;
+    padding:10px;
+}
+
+.reply-own{
+
+    text-align: right;
+}
+
+.reply{
+
+    text-align: left;
+}
+
+.reply-btn{
+    transform: translateY(30px);
+    cursor: pointer;
 }
 
 .message.own .messageText{
