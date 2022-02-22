@@ -21,6 +21,7 @@ import {
 
 
 import {Dialog, DialogContent} from "@mui/material";
+import MessagesNew from "./components/Conversation/MessagesNew";
 
 var showToast
 var setLoading
@@ -78,8 +79,9 @@ const cookies=new Cookies();
      
         <Route path="/login" element={<Login/>} />
  
-<Route path="/messages" element={cookies.get('token')!==undefined && cookies.get('token')!==null? <Message />:<Navigate to="/register" />  }>
-    
+{/*<Route path="/messages" element={cookies.get('token')!==undefined && cookies.get('token')!==null? <Message />:<Navigate to="/register" />  }>*/}
+<Route path="/messages" element={cookies.get('token')!==undefined && cookies.get('token')!==null? <MessagesNew />:<Navigate to="/register" />  }>
+
         </Route>
          
 

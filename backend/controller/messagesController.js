@@ -41,6 +41,18 @@ class MessagesController extends Controller {
             });
         }
     }
+
+    getReplies = async (req, res) => {
+
+        let result = await messagesRepository.replies(req.params.id)
+        if (result.success) {
+            res.status(200).json(result.data);
+        } else {
+            res.status(404).json({
+                success: false,
+            });
+        }
+    }
 }
 
 module.exports = MessagesController

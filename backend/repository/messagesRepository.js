@@ -302,10 +302,27 @@ class MessagesRepository extends Repository {
             }
         }
 
+        //resolving replies
+        var reqArr=[]
+        data.replies.map(r=>{
+            var query=`insert into replies (msg_id_1,msg_id_2,timestamp) values (:0 , :1 , :2)`
+            var params=[r.id,msgIdResult.data[0].ID,parseInt(Date.now()/1000)]
+            reqArr.push(this.query(query,params))
+        })
+
+        await Promise.all(reqArr)
+
         return {
             success: true,
             data: {}
         }
+    }
+
+    replies=async id=>{
+        var query=`select messages.id,messages.msg from messages,replies where messages.id=replies.msg_id_1 and replies.msg_id_2 = :0`
+        var params=[id]
+        var result=await this.query(query,params)
+        return result
     }
 
 

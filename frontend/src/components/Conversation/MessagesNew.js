@@ -1,56 +1,50 @@
-import React, {useEffect, useRef, useState} from 'react'
-import {useDispatch} from "react-redux"
-import {setLoading, showToast} from "../../App";
-import {logout} from "../../action/auth"
-import {checkAuth} from "../../action/auth"
-import Inboxes from "./Inbox/Inboxes.js"
-import Members from "./Inbox/Members.js"
-import Others from "./Inbox/Others.js"
-import "./messages.css"
-import MessageContainer from "../Message/MessageContainer"
-import Navbar from "../Navbar"
-import axios from "axios";
-import Cookies from 'universal-cookie';
-import LinearProgress from '@mui/material/LinearProgress';
-import DialogTitle from '@mui/material/DialogTitle';
-import Dialog from '@mui/material/Dialog';
-import TextField from '@mui/material/TextField';
-import {makeStyles} from "@mui/styles"
-import DialogContent from "@mui/material/DialogContent";
-import Button from '@mui/material/Button';
-
-import {app} from '../../config/firebase_config'
-import {getStorage, ref, uploadBytesResumable, getDownloadURL} from "firebase/storage";
-import {sendMessage} from "../../action/messages";
-
-import Chip from '@mui/material/Chip';
-import Stack from '@mui/material/Stack';
+import LogoutIcon from '@mui/icons-material/Logout';
+import IconButton from '@mui/material/IconButton';
+import SendIcon from '@mui/icons-material/Send';
+import * as React from 'react';
+import 'react-chat-elements/dist/main.css';
+import { ChatList,Input } from 'react-chat-elements'
+import Box from '@mui/material/Box';
+import Drawer from '@mui/material/Drawer';
+import CssBaseline from '@mui/material/CssBaseline';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import List from '@mui/material/List';
+import Typography from '@mui/material/Typography';
+import Divider from '@mui/material/Divider';
+import ListItem from '@mui/material/ListItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import InboxIcon from '@mui/icons-material/MoveToInbox';
+import MailIcon from '@mui/icons-material/Mail';
 
 import io from 'socket.io-client'
 import {api_base_url, socket_endpoint} from "../../index";
+import {app} from '../../config/firebase_config'
+import {getStorage, ref, uploadBytesResumable, getDownloadURL} from "firebase/storage";
+import Cookies from "universal-cookie";
+import {useEffect, useRef, useState} from "react";
+import {useDispatch} from "react-redux";
+import axios from "axios";
+import {checkAuth, logout} from "../../action/auth";
+import {setLoading, showToast} from "../../App";
+import {sendMessage} from "../../action/messages";
+import LinearProgress from "@mui/material/LinearProgress";
+import MessageContainer from "../Message/MessageContainer";
+import TextField from "@mui/material/TextField";
+import Chip from "@mui/material/Chip";
+import Stack from "@mui/material/Stack";
+import Button from "@mui/material/Button";
+import {Avatar} from "@mui/material";
 
 let socket;
 
 
 const cookies = new Cookies();
 
+const drawerWidth = 320;
 
-const useStyles = makeStyles({
-
-
-    root: {
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center"
-
-    }
-
-
-})
-
-
-const Messages = props => {
-
+function MessagesNew(props) {
     const msgRef = useRef(null)
     const data2Ref=useRef(null)
 
@@ -67,7 +61,7 @@ const Messages = props => {
     const dispatch = useDispatch();
 
     const dispatcher = useDispatch();
-    const classes = useStyles()
+
     const [chatHeads, setChatHeads] = useState([])
     const [open, setOpen] = useState(false);
     const [open2, setOpen2] = useState(false);
@@ -101,7 +95,6 @@ const Messages = props => {
     }
 
     var messagesRef = useRef()
-
 
     const handleType = () => {
 
@@ -159,7 +152,10 @@ const Messages = props => {
 
     const inboxClick = (data) => {
 
+        setReplies([])
+
         setData2(data);
+        setData([])
         data2Ref.current=data
         if (data.type === 1) {
             setState(1);
@@ -510,237 +506,147 @@ const Messages = props => {
         return (str.length > n) ? str.substr(0, n-1) + '...' : str;
     };
 
+    const chatHeadClick=event=>{
+        inboxClick(event.data)
+    }
+
+    const signoutClick=()=>{
+        socket.disconnect()
+        logout(dispatch);
+    }
+
     return (
-
-        <>
-            <Navbar/>
-
-            <Dialog onClose={handleClose} open={open}>
-                <DialogTitle>Edit Profile</DialogTitle>
-
-                <DialogContent className={classes.root}>
-                    <TextField
-                        id="outlined-name-input"
-                        label="Name"
-                        defaultValue={profileData.name ? profileData.name : ''}
-                        type="text"
-                        inputRef={nameRef}
-                        style={{marginTop: '20px'}}
-                        autoFocus
-                        margin="dense"
-
-                    />
-
-                    <TextField
-                        id="outlined-password-input"
-                        label="Status"
-                        defaultValue={profileData.status ? profileData.status : ''}
-                        type="text"
-                        inputRef={statusRef}
-                        style={{marginTop: '20px'}}
-                        autoFocus
-                        margin="dense"
-
-
-                    />
-                    <input
-                        style={{display: "none"}}
-                        id="contained-button-file"
-                        type="file"
-                        onChange={onImageChange}
-                    />
-                    <center>
-                        <div>
-                            <img style={{marginTop: "10px"}} src={imagePreview} height={'100px'} width={'100px'}/>
+        <Box sx={{ display: 'flex' }}>
+            <CssBaseline />
+            <AppBar
+                position="fixed"
+                sx={{ width: `calc(100% - ${drawerWidth*2}px)`,backgroundColor:'#ffffff',color:'#0090ff', mr: `${drawerWidth}px` }}
+            >
+                <Toolbar>
+                    <div>
+                        <div style={{color:'#000000',fontSize:'1.3em',display:'flex',alignItems:'center'}}>
+                            {
+                                data2!==null?(
+                                    <Avatar style={{marginRight:'10px'}} src={data2.image}/>
+                                ):(
+                                    <div/>
+                                )
+                            }
+                            {data2===null?' Select Inbox':data2.name}
                         </div>
-                        <label htmlFor="contained-button-file">
-                            <Button variant="contained" color="primary" component="span" style={{marginTop: "10px"}}>
-                                Upload Image
-                            </Button>
-                        </label>
-                        <Button onClick={upload} variant="contained" color="primary" component="span"
-                                style={{marginLeft: "10px", marginTop: '10px'}}>
-                            Update
+                    </div>
+                    <div style={{float:'right',marginLeft:'auto'}}>
+                        <Button onClick={signoutClick} variant="outlined" startIcon={<LogoutIcon />}>
+                            Logout
                         </Button>
-                    </center>
 
-                </DialogContent>
-            </Dialog>
-            <Dialog onClose={handleClose2} open={open2}>
-                <DialogTitle>Create Group</DialogTitle>
-
-                <DialogContent className={classes.root}>
-                    <TextField
-                        id="outlined-name-input"
-                        label="Name"
-
-                        type="text"
-                        inputRef={groupNameRef}
-                        style={{marginTop: '20px'}}
-                        autoFocus
-                        margin="dense"
-
-                    />
-
-
-                    <input
-                        style={{display: "none"}}
-                        id="contained-button-file"
-                        type="file"
-                        onChange={onImageChange2}
-                    />
-                    <center>
-                        <div>
-                            <img style={{marginTop: "10px"}} src={imagePreview2} height={'100px'} width={'100px'}/>
-                        </div>
-                        <label htmlFor="contained-button-file">
-                            <Button variant="contained" color="primary" component="span" style={{marginTop: "10px"}}>
-                                Upload Image
-                            </Button>
-                        </label>
-                        <Button onClick={upload2} variant="contained" color="primary" component="span"
-                                style={{marginLeft: "10px", marginTop: '10px'}}>
-                            Create
-                        </Button>
-                    </center>
-
-                </DialogContent>
-            </Dialog>
-
-
-            {profileData.name === undefined ? <LinearProgress/>
-
-                : (
-                    <div className="messenger">
-                        <div className="chatMenu">
-                            <div className="self">
-                                <img
-                                    className="conversationImg"
-                                    src={profileData.image !== undefined && profileData.image !== null ? profileData.image : "https://buet-edu-1.s3.ap-south-1.amazonaws.com/mehrab/venn_icon.png"}
-
-                                    alt=""
-                                />
-                                <b style={{marginTop: "5px", fontSize: "23px"}}
-                                   onClick={handleClick}>{profileData.name}</b>
-                                <Button variant="outlined" style={{marginLeft: "40px"}} onClick={handleClick2}>Create
-                                    Group</Button>
-                            </div>
-                            <div className="chatMenuWrapper">
-
-                                <input placeholder="Search for friends" className="chatMenuInput"/>
-                                <div style={{marginTop: "20px"}}>
-                                    <b style={{fontSize: "20px"}}>Chats</b>
-
-                                </div>
-
+                    </div>
+                </Toolbar>
+            </AppBar>
+            <Drawer
+                sx={{
+                    width: drawerWidth,
+                    flexShrink: 0,
+                    '& .MuiDrawer-paper': {
+                        width: drawerWidth,
+                        boxSizing: 'border-box',
+                    },
+                }}
+                variant="permanent"
+                anchor="left"
+            >
+                <Toolbar />
+                <Divider />
+                {
+                    profileData.name === undefined ? <LinearProgress/>:(
+                        <ChatList
+                            className='chat-list'
+                            onClick={chatHeadClick}
+                            dataSource={chatHeads.map((c, i) => {
+                                return(
+                                    {
+                                        data:c,
+                                        avatar: c.image,
+                                        alt: c.name,
+                                        title: c.name,
+                                        subtitle: c.message.text,
+                                        date: new Date(c.message.timestamp*1000),
+                                        unread: c.message.seen?1:0,
+                                    }
+                                )
+                            })}
+                         />
+                    )
+                }
+            </Drawer>
+            <Box
+                component="main"
+                sx={{ flexGrow: 1, bgcolor: 'background.default', p: 3 }}
+            >
+                <Toolbar />
+                {
+                    state === 1 || state === 2 ?(
+                        < MessageContainer replies={replies} modifyReplies={modifyReply} reacts={reactList} data={data} data2={data2}/>
+                    ):(
+                        <p></p>
+                    )
+                }
+                {
+                    data2===null?(
+                        <div/>
+                    ):(
+                        <div className={'chat-wrapper'}>
+                            <Stack direction="row" spacing={1}>
                                 {
-                                    chatHeads.map((c, i) => {
-                                        return (
-                                            <div onClick={() => inboxClick(c)}>
-                                                <Inboxes key={i} data={c}/>
+                                    replies.map(r=>{
+                                        return(
+                                            <Chip color={'primary'} style={{backgroundColor:'white'}} onDelete={()=>{
+                                                modifyReply(r,false)
+                                            }} label={truncate(r.msg,10)} variant="outlined" />
 
-                                            </div>
                                         )
                                     })
                                 }
+                            </Stack>
+                            <div className="chatBoxBottom">
 
+
+                                <TextField
+                                    variant={'filled'}
+                                    onChange={handleType}
+                                    inputRef={msgRef}
+                                    fullWidth
+
+                                    className="chatMessageInput"
+                                    label="write your message..."
+                                ></TextField>
+                                <IconButton className={'chat'} onClick={sendMessageClick} aria-label="delete">
+                                    <SendIcon color={'primary'}/>
+                                </IconButton>
                             </div>
                         </div>
-                        <div className="chatBox">
-                            <div className="chatBoxWrapper">
+                    )
+                }
+            </Box>
+            <Drawer
+                sx={{
+                    width: drawerWidth,
+                    flexShrink: 0,
+                    '& .MuiDrawer-paper': {
+                        width: drawerWidth,
+                        boxSizing: 'border-box',
+                    },
+                }}
+                variant="permanent"
+                anchor="right"
+            >
+                <Toolbar />
+                <Divider />
 
-                                {
-                                    state === 1 || state === 2 ?
-                                        (
-                                            <>
-                                                <div className="chatBoxTop">
-                                                    <div>
-                                                        < MessageContainer replies={replies} modifyReplies={modifyReply} reacts={reactList} data={data}/>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <Stack direction="row" spacing={1}>
-                                                        {
-                                                            replies.map(r=>{
-                                                                return(
-                                                                    <Chip variant="outlined" onDelete={()=>{
-                                                                        modifyReply(r,false)
-                                                                    }} label={truncate(r.msg,10)} variant="outlined" />
-
-                                                                )
-                                                            })
-                                                        }
-                                                    </Stack>
-                                                </div>
-                                                <div className="chatBoxBottom">
-
-                                                    {user ? `${user} is typing .....` : null}
-                                                    <TextField
-                                                        onChange={handleType}
-                                                        inputRef={msgRef}
-                                                        fullWidth
-                                                        multiline
-                                                        rows={2}
-                                                        className="chatMessageInput"
-                                                        placeholder="write something..."
-                                                    ></TextField>
-                                                    <button onClick={sendMessageClick} className="chatSubmitButton">
-                                                        Send
-                                                    </button>
-                                                </div>
-
-                                            </>
-                                        )
-                                        : <p>Open inboxes</p>
-                                }
-
-
-                            </div>
-
-                        </div>
-
-
-                        <div className="chatOnline">
-
-
-                            <div className="chatOnlineWrapper">
-                                {state == 2 ? <b>Group Members</b> : null}
-                                {
-                                    state == 2 && members && members.map((c, i) => {
-                                        return (
-                                            <div>
-                                                <Members key={i} data={c} groupData={data2}/>
-
-                                            </div>
-                                        )
-                                    })
-                                }
-                                {state == 2 ? <b>Add Members</b> : null}
-
-                                {
-                                    state == 2 && others && others.map((o, i) => {
-                                        if (o != undefined) {
-                                            return (
-                                                <div>
-                                                    <Others key={i} data={o} groupData={data2}/>
-
-                                                </div>
-                                            )
-                                        }
-                                    })
-                                }
-
-
-                            </div>
-                        </div>
-
-                    </div>)
-
-            }
-
-        </>
-    )
+            </Drawer>
+        </Box>
+    );
 }
 
-export default Messages;
+export default MessagesNew
 export {socket}

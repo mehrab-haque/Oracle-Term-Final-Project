@@ -6,12 +6,13 @@ import {setLoading,showToast} from "../App";
 const cookies = new Cookies();
 
 
-export const sendMessage=async (id,type,body)=>{
+export const sendMessage=async (id,type,body,replies)=>{
     try{
         await axios.post(`${api_base_url}message/send`,{
             to:id,
             type:type,
-            body:body
+            body:body,
+            replies:replies
         },
             {headers: {authorization: 'Bearer ' + cookies.get('token')}})
     }catch (e) {
