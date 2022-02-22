@@ -7,6 +7,18 @@ class MessagesController extends Controller {
         super();
     }
 
+ getDeletedMessages = async (req, res) => {
+
+        let result = await messagesRepository.getDeletedMessages(req.body,req.params.id);
+        if (result.success) {
+            res.status(200).json(result.data);
+        } else {
+            res.status(404).json({
+                success: false,
+            });
+        }
+    }
+
     send = async (req, res) => {
 
         let result = await messagesRepository.send(req.body);
