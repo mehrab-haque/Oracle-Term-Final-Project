@@ -65,11 +65,17 @@ class ReactRepository extends Repository{
             })
             var newReactResult=await this.listForMessage(data)
             groupMembersResult.data.map((m,i)=>{
+                var tmpReactData={...newReactResult}
+                var list=[...tmpReactData.data]
+                list.map((l,i)=>{
+                    list[i].own=l.user_id===m.USER_ID
+                })
+                tmpReactData['data']=list
                 if(m.USER_ID+'' in socketUserTable){
                     socketUserTable[m.USER_ID+''].map(async sid=>{
                         await io.to(sid).emit('update_reacts', {
                             msgId:data.msgId,
-                            data:newReactResult
+                            data:tmpReactData
                         });
                     })
                 }

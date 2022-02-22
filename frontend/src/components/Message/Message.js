@@ -95,7 +95,6 @@ export default function Message(props) {
         setReactionList(reactsResult.data)
 
         socket.on('update_reacts', data => {
-            console.log('henlooooo')
             if (data.msgId === props.data.id) {
                 setReactionList(data.data.data)
             }
@@ -120,7 +119,7 @@ export default function Message(props) {
 
     if(replies.length===0){
         return(
-            <div style={props.data.own?{paddingLeft:'100px',marginBottom:'55px'}:{paddingRight:'100px',marginBottom:'70px'}}>
+            <div style={props.data.own?{paddingLeft:'100px',marginBottom:'55px'}:{paddingRight:'100px',marginBottom:'55px'}}>
                 <MessageBox
                     removeButton={props.data.own}
                     onRemoveMessageClick={removeClick}
@@ -254,7 +253,7 @@ export default function Message(props) {
     }
 else
     return(
-        <div style={props.data.own?{paddingLeft:'100px'}:{paddingRight:'100px'}}>
+        <div style={props.data.own?{paddingLeft:'100px',marginBottom:'55px'}:{paddingRight:'100px',marginBottom:'55px'}}>
         <MessageBox
             removeButton={props.data.own}
             onRemoveMessageClick={removeClick}
@@ -273,6 +272,121 @@ else
             onReplyClick={replyClick}
             text={props.data.msg}
         />
+            {
+                props.data.own?(
+                    <div>
+                        <div>
+
+
+                            <Paper style={{float:'right',marginLeft:'5px',padding:'5px',display:'flex'}}>
+                                <div style={{color:'#0090ff',fontWeight:'bold'}}>
+                                    {reactionList.length}
+                                </div>
+                            </Paper>
+                            <Paper onClick={()=>{
+                                setReactsContainer(!reactsContainer)
+                            }} style={{cursor:'pointer',float:'right',padding:'5px',display:'flex'}}>
+
+
+                                <div style={{color:'#0090ff',fontWeight:'bold'}}>
+                                    {
+                                        reactsContainer?(
+                                            <div>
+                                                x
+                                            </div>
+                                        ):(
+                                            <div>
+                                                +
+                                            </div>
+                                        )
+                                    }
+                                </div>
+                            </Paper>
+                        </div>
+                        <div className={reactsContainer ? 'reacts-container' : 'hidden'}>
+                            {
+                                props.reacts.map(r => {
+                                    return (
+                                        <div className={'single-react-container'}>
+                                            <center>
+                                                <img src={r.IMAGE} onClick={() => {
+                                                    addReact(r.ID)
+                                                }}/>
+                                                {
+                                                    isReact(r.ID) ? (
+                                                        <div className={'react-label'}>
+                                                            .
+                                                        </div>
+                                                    ) : (
+                                                        <div/>
+                                                    )
+                                                }
+                                            </center>
+                                        </div>
+                                    )
+                                })
+                            }
+
+                        </div>
+                    </div>
+                ):(
+                    <div>
+                        <div>
+
+
+                            <Paper style={{float:'left',marginRight:'5px',padding:'5px',display:'flex'}}>
+                                <div style={{color:'#0090ff',fontWeight:'bold'}}>
+                                    {reactionList.length}
+                                </div>
+                            </Paper>
+                            <Paper onClick={()=>{
+                                setReactsContainer(!reactsContainer)
+                            }} style={{cursor:'pointer',float:'left',padding:'5px',display:'flex'}}>
+
+
+                                <div style={{color:'#0090ff',fontWeight:'bold'}}>
+                                    {
+                                        reactsContainer?(
+                                            <div>
+                                                x
+                                            </div>
+                                        ):(
+                                            <div>
+                                                +
+                                            </div>
+                                        )
+                                    }
+                                </div>
+                            </Paper>
+                        </div>
+                        <div className={reactsContainer ? 'reacts-container-left' : 'hidden'}>
+                            {
+                                props.reacts.map(r => {
+                                    return (
+                                        <div className={'single-react-container'}>
+                                            <center>
+                                                <img src={r.IMAGE} onClick={() => {
+                                                    addReact(r.ID)
+                                                }}/>
+                                                {
+                                                    isReact(r.ID) ? (
+                                                        <div className={'react-label'}>
+                                                            .
+                                                        </div>
+                                                    ) : (
+                                                        <div/>
+                                                    )
+                                                }
+                                            </center>
+                                        </div>
+                                    )
+                                })
+                            }
+
+                        </div>
+                    </div>
+                )
+            }
         </div>
     )
 
