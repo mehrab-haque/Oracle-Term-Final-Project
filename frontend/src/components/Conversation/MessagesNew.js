@@ -1,4 +1,8 @@
+import PropTypes from 'prop-types';
+import InfoIcon from '@mui/icons-material/Info';
 import SettingsIcon from '@mui/icons-material/Settings';
+import MenuIcon from '@mui/icons-material/Menu';
+import EditIcon from '@mui/icons-material/Edit';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ReactTimeAgo from 'react-time-ago'
@@ -88,6 +92,18 @@ function MessagesNew(props) {
     const [state, setState] = useState(0)
 
     const [replies,setReplies]=useState([])
+
+    const { window } = props;
+    const [mobileOpen, setMobileOpen] = React.useState(false);
+    const [mobileOpen2, setMobileOpen2] = React.useState(false);
+
+    const handleDrawerToggle = () => {
+        setMobileOpen(!mobileOpen);
+    };
+
+    const handleDrawerToggle2 = () => {
+        setMobileOpen2(!mobileOpen2);
+    };
 
     useEffect(()=>{
         console.log(replies)
@@ -355,6 +371,8 @@ function MessagesNew(props) {
         }
 
     }
+    const container = window !== undefined ? () => window().document.body : undefined;
+
 
 
     const sendMessageClick = async () => {
@@ -628,10 +646,23 @@ function MessagesNew(props) {
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
             <AppBar
+                sx={{
+                    backgroundColor:'#ffffff',color:'#0090ff',
+                    width: { sm: `calc(100% - ${drawerWidth}px)` },
+                    ml: { sm: `${drawerWidth}px` },
+                }}
                 position="fixed"
-                sx={{ width: `calc(100% - ${drawerWidth*2}px)`,backgroundColor:'#ffffff',color:'#0090ff', mr: `${drawerWidth}px` }}
             >
                 <Toolbar>
+                    <IconButton
+                        color="inherit"
+                        aria-label="open drawer"
+                        edge="start"
+                        onClick={handleDrawerToggle}
+                        sx={{ mr: 2, display: { sm: 'none' } }}
+                    >
+                        <MenuIcon />
+                    </IconButton>
                     <div>
                         <div style={{color:'#000000',fontSize:'1.3em',display:'flex',alignItems:'center'}}>
                             {
@@ -648,10 +679,71 @@ function MessagesNew(props) {
                         <Button onClick={signoutClick} variant="outlined" startIcon={<LogoutIcon />}>
                             Logout
                         </Button>
+                        <IconButton
+                            color="inherit"
+                            aria-label="open drawer"
+                            edge="start"
+                            style={{marginRight:'-10px',marginLeft:'5px'}}
+                            onClick={handleDrawerToggle2}
+                            sx={{ mr: 2, display: { sm: 'none' } }}
+                        >
+                            <InfoIcon />
+                        </IconButton>
 
                     </div>
                 </Toolbar>
             </AppBar>
+            <Dialog onClose={handleClose} open={open}>
+                <DialogTitle>Edit Profile</DialogTitle>
+
+                <DialogContent >
+                    <TextField
+                        id="outlined-name-input"
+                        label="Name"
+                        defaultValue={profileData.name ? profileData.name : ''}
+                        type="text"
+                        inputRef={nameRef}
+                        style={{marginTop: '20px'}}
+                        autoFocus
+                        margin="dense"
+
+                    /><br/>
+
+                    <TextField
+                        id="outlined-password-input"
+                        label="Status"
+                        defaultValue={profileData.status ? profileData.status : ''}
+                        type="text"
+                        inputRef={statusRef}
+                        style={{marginTop: '20px'}}
+                        autoFocus
+                        margin="dense"
+
+
+                    /><br/>
+                    <input
+                        style={{display: "none"}}
+                        id="contained-button-file"
+                        type="file"
+                        onChange={onImageChange}
+                    />
+                    <center>
+                        <div>
+                            <img style={{marginTop: "10px"}} src={imagePreview} height={'100px'} width={'100px'}/>
+                        </div>
+                        <label htmlFor="contained-button-file">
+                            <Button variant="contained" color="primary" component="span" style={{marginTop: "10px"}}>
+                                Upload Image
+                            </Button>
+                        </label>
+                        <Button onClick={upload} variant="contained" color="primary" component="span"
+                                style={{marginLeft: "10px", marginTop: '10px'}}>
+                            Update
+                        </Button>
+                    </center>
+
+                </DialogContent>
+            </Dialog>
             <Dialog onClose={handleClose2} open={open2}>
                 <DialogTitle>Create Group</DialogTitle>
 
@@ -693,6 +785,13 @@ function MessagesNew(props) {
                 </DialogContent>
             </Dialog>
             <Drawer
+                container={container}
+                variant="temporary"
+                open={mobileOpen}
+                onClose={handleDrawerToggle}
+                ModalProps={{
+                    keepMounted: true,
+                }}
                 sx={{
                     width: drawerWidth,
                     flexShrink: 0,
@@ -701,12 +800,34 @@ function MessagesNew(props) {
                         boxSizing: 'border-box',
                     },
                 }}
-                variant="permanent"
                 anchor="left"
             >
                 <Toolbar >
+                    {
+                        profileData && Object.keys(profileData)!==0?(
+                            <div style={{display:'flex',alignItems:'center'}}>
+                                <Avatar src={profileData.image} style={{marginLeft:'-10px',marginRight:'10px',height:'50px',width:'50px'}}>
+                                    {
+                                        profileData.name?.substr(0,1)
+                                    }
+                                </Avatar>
+                                <div>
+                                    <b>{
+                                        profileData.name
+                                    }</b>
+                                </div>
+
+                            </div>
+                        ):(
+                            <div/>
+                        )
+                    }
                     <div style={{width:'100%'}}>
-                        <AddCircleIcon onClick={()=>{setOpen2(true)}} style={{color:'#0090ff',float:'right',marginLeft:'auto',cursor:'pointer'}}/>
+                        <div style={{float:'right',marginLeft:'auto',paddingTop:'10px'}}>
+                            <EditIcon onClick={()=>{setOpen(true)}} style={{color:'#0090ff',marginRight:'5px',cursor:'pointer'}}/>
+                            <AddCircleIcon onClick={()=>{setOpen2(true)}} style={{color:'#0090ff',cursor:'pointer'}}/>
+
+                        </div>
                     </div>
                 </Toolbar>
                 <Divider />
@@ -729,6 +850,66 @@ function MessagesNew(props) {
                                 )
                             })}
                          />
+                    )
+                }
+            </Drawer>
+            <Drawer
+                variant="permanent"
+                anchor="left"
+                sx={{
+                    display: { xs: 'none', sm: 'block' },
+                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+                }}
+                open
+            >
+                <Toolbar >
+                    {
+                        profileData && Object.keys(profileData)!==0?(
+                            <div style={{display:'flex',alignItems:'center'}}>
+                                <Avatar src={profileData.image} style={{marginLeft:'-10px',marginRight:'10px',height:'50px',width:'50px'}}>
+                                    {
+                                        profileData.name?.substr(0,1)
+                                    }
+                                </Avatar>
+                                <div>
+                                    <b>{
+                                        profileData.name
+                                    }</b>
+                                </div>
+
+                            </div>
+                        ):(
+                            <div/>
+                        )
+                    }
+                    <div style={{width:'100%'}}>
+                        <div style={{float:'right',marginLeft:'auto',paddingTop:'10px'}}>
+                            <EditIcon onClick={()=>{setOpen(true)}} style={{color:'#0090ff',marginRight:'5px',cursor:'pointer'}}/>
+                            <AddCircleIcon onClick={()=>{setOpen2(true)}} style={{color:'#0090ff',cursor:'pointer'}}/>
+
+                        </div>
+                    </div>
+                </Toolbar>
+                <Divider />
+                {
+                    profileData.name === undefined ? <LinearProgress/>:(
+                        <ChatList
+                            className='chat-list'
+                            onClick={chatHeadClick}
+                            dataSource={chatHeads.map((c, i) => {
+                                return(
+                                    {
+                                        data:c,
+                                        avatar: c.image,
+                                        alt: c.name,
+                                        title: c.name,
+                                        subtitle: c.message.text,
+                                        date: new Date(c.message.timestamp*1000),
+                                        unread: c.message.seen?1:0,
+                                    }
+                                )
+                            })}
+                        />
                     )
                 }
             </Drawer>
@@ -782,6 +963,13 @@ function MessagesNew(props) {
                 }
             </Box>
             <Drawer
+                container={container}
+                variant="temporary"
+                open={mobileOpen2}
+                onClose={handleDrawerToggle2}
+                ModalProps={{
+                    keepMounted: true,
+                }}
                 sx={{
                     width: drawerWidth,
                     flexShrink: 0,
@@ -790,8 +978,52 @@ function MessagesNew(props) {
                         boxSizing: 'border-box',
                     },
                 }}
+                anchor="right"
+            >
+                <Toolbar >
+                    {
+                        data2 && data2.type===2?(
+                            <div style={{width:'100%'}}>
+                                <SettingsIcon onClick={()=>{setOpen2(true)}} style={{color:'#0090ff',float:'right',marginLeft:'auto',cursor:'pointer'}}/>
+                            </div>
+                        ):(
+                            <div>
+
+                            </div>
+                        )
+                    }
+
+                </Toolbar>
+                <Divider />
+                {state == 2 && members ? <div style={{marginTop:'10px'}}>
+                    <b style={{marginLeft:'10px',marginTop:'10px'}}>Group Members ({members.length})</b>
+                    <b style={{marginRight:'10px',cursor:'pointer',float:'right',color:'#dd0000'}}>Leave</b>
+                </div>: null}
+                {
+                    state == 2 && members ? (
+                        <GroupMembers groupData={data2} members={members}/>
+                    ):(
+                        <div/>
+                    )
+                }
+                {state == 2 && others ? <b style={{marginLeft:'10px',marginTop:'10px'}}>Add Members</b> : null}
+
+                {
+                    state == 2 && others ? (
+                        <GroupOthers groupData={data2} others={others}/>
+                    ):(
+                        <div/>
+                    )
+                }
+            </Drawer>
+            <Drawer
                 variant="permanent"
                 anchor="right"
+                sx={{
+                    display: { xs: 'none', sm: 'block' },
+                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+                }}
+                open
             >
                 <Toolbar >
                     {
@@ -934,6 +1166,10 @@ const GroupOthers=props=>{
         <div/>
     )
 }
+
+MessagesNew.propTypes = {
+    window: PropTypes.func,
+};
 
 export default MessagesNew
 export {socket}
