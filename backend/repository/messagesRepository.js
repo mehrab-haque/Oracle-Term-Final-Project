@@ -361,6 +361,54 @@ data:{}
         }
     }
 
+    delete=async ({user_id,id,place,type})=>{
+        var query=`
+            BEGIN
+                deleteMessage(${id});
+            END;
+        `
+        var params=[]
+        await this.query(query,params)
+
+        if(type===1){
+            var uids=[user_id,place]
+            uids.map(uid=>{
+                if(uid+'' in socketUserTable){
+                    socketUserTable[uid+''].map(async sid=>{
+                        await io.to(sid).emit('message_delete', {
+                            id:id,
+                            place:place,
+                            type:type
+                        });
+                    })
+                }
+            })
+        }else{
+            var groupMembersResult=await groupRepository.members({
+                groupId:place,
+                user_id:user_id
+            })
+            groupMembersResult.data.map((m,i)=>{
+                if(m.USER_ID+'' in socketUserTable){
+                    socketUserTable[m.USER_ID+''].map(async sid=>{
+                        await io.to(sid).emit('message_delete', {
+                            id:id,
+                            place:place,
+                            type:type
+                        });
+                    })
+                }
+            })
+        }
+
+
+
+        return {
+            success:true,
+            data:{}
+        }
+    }
+
     replies=async id=>{
         var query=`select messages.id,messages.msg from messages,replies where messages.id=replies.msg_id_1 and replies.msg_id_2 = :0`
         var params=[id]

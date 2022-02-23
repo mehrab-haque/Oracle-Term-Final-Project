@@ -1,4 +1,9 @@
+import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import ReactTimeAgo from 'react-time-ago'
+import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
+import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import IconButton from '@mui/material/IconButton';
 import SendIcon from '@mui/icons-material/Send';
 import * as React from 'react';
@@ -35,7 +40,12 @@ import TextField from "@mui/material/TextField";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
-import {Avatar} from "@mui/material";
+import {Avatar, ListItemAvatar} from "@mui/material";
+import Members from "./Inbox/Members";
+import {Add} from "@mui/icons-material";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import Dialog from "@mui/material/Dialog";
 
 let socket;
 
@@ -47,6 +57,8 @@ const drawerWidth = 320;
 function MessagesNew(props) {
     const msgRef = useRef(null)
     const data2Ref=useRef(null)
+    const membersRef=useRef(null)
+    const othersRef=useRef(null)
 
     const storage = getStorage(app);
 
@@ -171,6 +183,7 @@ function MessagesNew(props) {
             axios.get('http://localhost:8080/api/v1.0.0/group/getMembers/' + data.id, {headers: {authorization: 'Bearer ' + cookies.get('token')}})
                 .then(res => {
                     setMembers(res.data);
+                    membersRef.current=res.data
                     let v = chatHeads.map(c => {
                         let flag = 0;
                         res.data.forEach(r => {
@@ -186,6 +199,7 @@ function MessagesNew(props) {
 
                     })
                     setOthers(v);
+                    othersRef.current=v
 
                 })
                 .catch(e => console.log(e))
@@ -406,6 +420,89 @@ function MessagesNew(props) {
 
         })
 
+        socket.on('group_add', d => {
+            console.log(d)
+            chatHeadsRef.current=[d,...chatHeadsRef.current]
+            setChatHeads(chatHeadsRef.current)
+        })
+
+        socket.on('group_remove', d => {
+
+        })
+
+        socket.on('group_add_member', d => {
+            if(data2Ref.current && data2Ref.current.id===d.groupId) {
+                membersRef.current = [d, ...membersRef.current]
+                setMembers(membersRef.current)
+                var newOthers = []
+                othersRef.current.map(o => {
+                    if (o && o.id !== d.ID)
+                        newOthers.push(o)
+                })
+                othersRef.current = [...newOthers]
+                setOthers(othersRef.current)
+            }
+
+        })
+
+        socket.on('group_remove_member', d => {
+            if(data2Ref.current && data2Ref.current.id===d.groupId) {
+                othersRef.current = [{
+                    id:d.ID,
+                    name:d.NAME,
+                    image:d.IMAGE
+                }, ...othersRef.current]
+                setOthers(othersRef.current)
+                var newMembers = []
+                membersRef.current.map(o => {
+                    if (o && o.ID !== d.ID)
+                        newMembers.push(o)
+                })
+                membersRef.current = [...newMembers]
+                setMembers(membersRef.current)
+            }
+
+        })
+
+        socket.on('group_remove_member_single', d => {
+            var newChatHeads=[]
+            chatHeadsRef.current.map(c=>{
+                if(c.type===1 || (c.type===2 && c.id!==d.groupId))
+                    newChatHeads.push(c)
+            })
+            chatHeadsRef.current=newChatHeads
+            setChatHeads(chatHeadsRef.current)
+
+            if(data2Ref.current.id===d.groupId){
+                messagesRef.current=null
+                setData(messagesRef.current)
+                data2Ref.current=null
+                setData2(data2Ref.current)
+                membersRef.current=null
+                othersRef.current=null
+                setMembers(membersRef.current)
+                setOthers(othersRef.current)
+            }
+
+
+            if(data2Ref.current && data2Ref.current.id===d.groupId) {
+                othersRef.current = [{
+                    id:d.ID,
+                    name:d.NAME,
+                    image:d.IMAGE
+                }, ...othersRef.current]
+                setOthers(othersRef.current)
+                var newMembers = []
+                membersRef.current.map(o => {
+                    if (o && o.ID !== d.ID)
+                        newMembers.push(o)
+                })
+                membersRef.current = [...newMembers]
+                setMembers(membersRef.current)
+            }
+
+        })
+
         socket.on('message_group', d => {
             console.log('message group received')
 
@@ -500,6 +597,18 @@ function MessagesNew(props) {
             }]
             setData(messagesRef.current)
         })
+
+        socket.on('message_delete', d => {
+            if(d.type===data2Ref.current.type && d.place===data2Ref.current.id){
+                const array=[]
+                messagesRef.current.map(m=>{
+                    if(m.id!==d.id)
+                        array.push(m)
+                })
+                messagesRef.current=[...array]
+                setData(messagesRef.current)
+            }
+        })
     }, [])
 
     function truncate(str, n){
@@ -543,6 +652,46 @@ function MessagesNew(props) {
                     </div>
                 </Toolbar>
             </AppBar>
+            <Dialog onClose={handleClose2} open={open2}>
+                <DialogTitle>Create Group</DialogTitle>
+
+                <DialogContent >
+                    <TextField
+                        id="outlined-name-input"
+                        label="Name"
+
+                        type="text"
+                        inputRef={groupNameRef}
+                        style={{marginTop: '20px'}}
+                        autoFocus
+                        margin="dense"
+
+                    />
+
+
+                    <input
+                        style={{display: "none"}}
+                        id="contained-button-file"
+                        type="file"
+                        onChange={onImageChange2}
+                    />
+                    <center>
+                        <div>
+                            <img style={{marginTop: "10px"}} src={imagePreview2} height={'100px'} width={'100px'}/>
+                        </div>
+                        <label htmlFor="contained-button-file">
+                            <Button variant="contained" color="primary" component="span" style={{marginTop: "10px"}}>
+                                Upload Image
+                            </Button>
+                        </label>
+                        <Button onClick={upload2} variant="contained" color="primary" component="span"
+                                style={{marginLeft: "10px", marginTop: '10px'}}>
+                            Create
+                        </Button>
+                    </center>
+
+                </DialogContent>
+            </Dialog>
             <Drawer
                 sx={{
                     width: drawerWidth,
@@ -555,7 +704,11 @@ function MessagesNew(props) {
                 variant="permanent"
                 anchor="left"
             >
-                <Toolbar />
+                <Toolbar >
+                    <div style={{width:'100%'}}>
+                        <AddCircleIcon onClick={()=>{setOpen2(true)}} style={{color:'#0090ff',float:'right',marginLeft:'auto',cursor:'pointer'}}/>
+                    </div>
+                </Toolbar>
                 <Divider />
                 {
                     profileData.name === undefined ? <LinearProgress/>:(
@@ -640,12 +793,146 @@ function MessagesNew(props) {
                 variant="permanent"
                 anchor="right"
             >
-                <Toolbar />
-                <Divider />
+                <Toolbar >
+                    {
+                        data2 && data2.type===2?(
+                            <div style={{width:'100%'}}>
+                                <SettingsIcon onClick={()=>{setOpen2(true)}} style={{color:'#0090ff',float:'right',marginLeft:'auto',cursor:'pointer'}}/>
+                            </div>
+                        ):(
+                            <div>
 
+                            </div>
+                        )
+                    }
+
+                </Toolbar>
+                <Divider />
+                {state == 2 && members ? <div style={{marginTop:'10px'}}>
+                    <b style={{marginLeft:'10px',marginTop:'10px'}}>Group Members ({members.length})</b>
+                    <b style={{marginRight:'10px',cursor:'pointer',float:'right',color:'#dd0000'}}>Leave</b>
+                </div>: null}
+                {
+                    state == 2 && members ? (
+                        <GroupMembers groupData={data2} members={members}/>
+                    ):(
+                        <div/>
+                    )
+                }
+                {state == 2 && others ? <b style={{marginLeft:'10px',marginTop:'10px'}}>Add Members</b> : null}
+
+                {
+                    state == 2 && others ? (
+                        <GroupOthers groupData={data2} others={others}/>
+                    ):(
+                        <div/>
+                    )
+                }
             </Drawer>
         </Box>
     );
+}
+
+const GroupMembers=props=>{
+    const removeClick=(u)=> {
+        console.log(u)
+        var newData = {
+            groupId: props.groupData.id,
+            userId: u.ID,
+            userName:u.NAME,
+            userImage:u.IMAGE
+        }
+        axios.post('http://localhost:8080/api/v1.0.0/group/remove', newData, {headers: {authorization: 'Bearer ' + cookies.get('token')}})
+            .then(res => {
+                showToast("User successfully removed");
+            })
+
+            .catch(e => {
+                showToast("You cannot remove members");
+            })
+    }
+    return(
+        <List>
+            {
+                props.members.map(m=>{
+
+                    return(
+                        <ListItem
+                            secondaryAction={
+                                <IconButton onClick={()=>{removeClick(m)}} edge="end" aria-label="delete">
+                                    <PersonRemoveIcon style={{color:'#dd0000'}} />
+                                </IconButton>
+                            }
+                        >
+                            <ListItemAvatar>
+                                <Avatar src={m.IMAGE}>
+                                    {m.NAME.substr(0,1)}
+                                </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText
+                                primary={m.NAME}
+                                secondary={`Joined on ${new Date(m.TIMESTAMP*1000).toDateString()}`}
+                            />
+                        </ListItem>
+                    )
+                })
+            }
+        </List>
+    )
+}
+
+const GroupOthers=props=>{
+
+    const addClick=(u)=> {
+        var newData = {
+            groupId: props.groupData.id,
+            userId: u.id,
+            userName:u.name,
+            userImage:u.image
+        }
+        axios.post('http://localhost:8080/api/v1.0.0/group/add', newData, {headers: {authorization: 'Bearer ' + cookies.get('token')}})
+            .then(res => {
+                showToast("User successfully added");
+            })
+
+            .catch(e => {
+                showToast("Error occured");
+            })
+    }
+
+
+    if(props.others)
+    return(
+        <List>
+            {
+                props.others.map(m=>{
+                    if(m!==null)
+                    return(
+                        <ListItem
+                            secondaryAction={
+                                <IconButton onClick={()=>{addClick(m)}} edge="end" aria-label="delete">
+                                    <PersonAddAltIcon style={{color:'#0090ff'}} />
+                                </IconButton>
+                            }
+                        >
+                            <ListItemAvatar>
+                                <Avatar src={m.image}>
+                                    {m.name.substr(0,1)}
+                                </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText
+                                primary={m.name}
+                                secondary={`Hello There`}
+                            />
+                        </ListItem>
+                    )
+                })
+            }
+        </List>
+    )
+    return(
+        <div/>
+    )
 }
 
 export default MessagesNew

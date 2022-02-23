@@ -1,12 +1,5 @@
 const Repository = require('./connection').Repository
 
-const images=[
-    'https://lh3.googleusercontent.com/a-/AOh14Gjr523lB_RN2WkIOHWARbREFhG4cV2rEY0nkCH5Gg=s96-c',
-    'https://lh3.googleusercontent.com/a-/AOh14GjH-HzfS5beIuhT03W9BbQlOXGoWPLK290TDDLo2A=s96-c',
-    'https://lh3.googleusercontent.com/a-/AOh14Gjp7yKADoa70L0141Vj66Bqp9EBURBI6gRbe28q=s96-c',
-    'https://lh3.googleusercontent.com/a-/AOh14GhjRq35rXu6OozGGkeA5x3HWf3lMPIxW7faK69vpg=s96-c'
-]
-
 class UsersRepository extends Repository{
     constructor() {
         super();
@@ -28,7 +21,7 @@ class UsersRepository extends Repository{
             var obj={
                 id:d.ID,
                 name:d.NAME,
-                image:images[i%4],
+                image:d.IMAGE,
                 type:1
             }
             const inboxQuery=`select froms.user_id as sender_id,messages.place_id,messages.msg as msg,inboxes.id, senders_receivers.timestamp as timestamp from inboxes,messages,senders_receivers,froms where inboxes.uid_1 = :0 and inboxes.uid_2 = :1 and inboxes.id=messages.place_id and senders_receivers.message_id = messages.id and senders_receivers.sender_id=froms.sender_id order by timestamp desc`
