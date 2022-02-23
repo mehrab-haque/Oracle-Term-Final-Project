@@ -7,6 +7,18 @@ class GroupController extends Controller{
         super();
     }
 
+    removedMembers = async(req, res) => {
+
+        let result = await groupRepository.getRemovedMembers(req.body)
+        if (result.success) {
+            res.status(200).json(result.data);
+        } else {
+            res.status(404).json({
+                success: false,
+            });
+        }
+    }
+
     createGroup = async(req, res) => {
 
         let result = await groupRepository.create(req.body)

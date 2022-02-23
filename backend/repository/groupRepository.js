@@ -12,7 +12,16 @@ class GroupRepository extends Repository{
     }
 
 
+ getRemovedMembers=async (data)=>{
+        const query='select users.id,users.name,users.image from users,removedMembers where removedMembers.group_id=:0 and users.id= removedMembers.user_id'
+        const params=[data.groupId];
+        var result=await this.query(query,params)
+        return {
+success:true,
+data:result.data
 
+}
+    }
     getMembers=async (data,id)=>{
 
 
