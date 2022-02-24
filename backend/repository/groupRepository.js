@@ -15,19 +15,17 @@ class GroupRepository extends Repository{
 
     getMembers=async (data,id)=>{
 
-
-       
-
-
-
         const memberGetQuery=`select users.id,users.name,users.image,members.timestamp from users,members where group_id=:0 and users.id=members.user_id`
         const memberGetParams=[id]
         const memberGetResult=await this.query(memberGetQuery,memberGetParams)
 //console.log(memberGetResult);
+
+
+
         return {
 
 		success:true,
-                data:memberGetResult.data
+                data:memberGetResult.data.map(m=>{return {...m,own:m.ID===data.user_id}})
        }
     }
 
