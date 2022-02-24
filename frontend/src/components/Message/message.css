@@ -114,8 +114,15 @@
     margin-top: -24px;
     overflow-x:scroll;
     overflow-x: hidden;
-    margin-right: -25px;
-    margin-left: -25px;
+    margin-left: 295px;
+    margin-right: 295px;
+}
+
+@media only screen and (max-width: 600px) {
+    .messages-container{
+        margin-left: -25px;
+        margin-right: -25px;
+    }
 }
 
 .reply,.reply-own{

@@ -14,7 +14,17 @@ import ReplyIcon from '@mui/icons-material/Reply';
 import Button from '@mui/material/Button';
 import Chip from "@mui/material/Chip";
 import {MessageBox} from "react-chat-elements";
-import {Divider, Paper} from "@mui/material";
+import {
+    Avatar,
+    DialogActions,
+    Divider,
+    ListItem,
+    ListItemAvatar,
+    ListItemIcon,
+    ListItemText,
+    Paper
+} from "@mui/material";
+import List from "@mui/material/List";
 
 const cookies = new Cookies();
 
@@ -53,12 +63,16 @@ export default function Message(props) {
             if (r.own && r.reaction_id === id)
                 result = true
         })
+
         return result
     }
     const reactionClick = () => {
 
         setOpen(true)
     }
+
+    const [reactsDialog,setReactsDialog]=useState(false)
+    const [repliesDialog,setRepliesDialog]=useState(false)
 
     const addReact = async reactId => {
         var reactResult = await axios.post(`${api_base_url}react/create`, {
@@ -89,21 +103,39 @@ export default function Message(props) {
 
     const [replies,setReplies]=useState([])
 
+    const getIcon=id=>{
+        var icon=null
+        props.reacts.map(r=>{
+            if(r.ID===id) {
+                icon = r.IMAGE
+            }
+        })
+        return icon
+    }
+
     useEffect(async () => {
         var reactsResult = await axios.post(`${api_base_url}react/list_msg`, {msgId: props.data.id}, {headers: {authorization: 'Bearer ' + cookies.get('token')}})
-
-        setReactionList(reactsResult.data)
+        var arr=[]
+        reactsResult.data.map((r,i)=>{
+            arr.push({...r,icon:getIcon(r.reaction_id)})
+        })
+        setReactionList(arr)
 
         socket.on('update_reacts', data => {
             if (data.msgId === props.data.id) {
-                setReactionList(data.data.data)
+                var arr=[]
+                data.data.data.map((r,i)=>{
+                    arr.push({...r,icon:getIcon(r.reaction_id)})
+                })
+                setReactionList(arr)
             }
         })
 
-        console.log('hi')
+        //console.log('hi')
         var repliesResult=await axios.get(`${api_base_url}message/replies/get/${props.data.id}`,{headers: {authorization: 'Bearer ' + cookies.get('token')}})
-        setReplies(repliesResult.data)
-        console.log(repliesResult)
+
+        setReplies(props.getRepliesDetails(repliesResult.data))
+        console.log(props.getRepliesDetails(repliesResult.data))
 
     }, [])
 
@@ -120,18 +152,76 @@ export default function Message(props) {
     if(replies.length===0){
         return(
             <div style={props.data.own?{paddingLeft:'100px',marginBottom:'55px'}:{paddingRight:'100px',marginBottom:'55px'}}>
-                <MessageBox
-                    removeButton={props.data.own}
-                    onRemoveMessageClick={removeClick}
-                    position={props.data.own?'right':'left'}
-                    type={'text'}
-                    date={new Date(props.data.timestamp*1000)}
-                    replyButton={!isReply}
-                    notch={true}
-                    title={props.data.own?'You':props.data2.name}
-                    onReplyClick={replyClick}
-                    text={props.data.msg}
-                />
+                <Dialog open={reactsDialog} onClose={()=>{setReactsDialog(false)}}>
+                    <DialogTitle>
+                        {reactionList.length>0?reactionList.length:'No'} Reaction{reactionList.length>1?'s':''}
+                    </DialogTitle>
+                    <DialogContent>
+                        <List>
+                            {
+                                reactionList.map(r=>{
+
+                                    return(
+                                        <div>
+                                            <ListItem>
+                                                <ListItemAvatar>
+                                                    <Avatar src={r.image}>
+                                                        {r.name.substr(0,1)}
+                                                    </Avatar>
+                                                </ListItemAvatar>
+                                                <ListItemText>
+                                                    {r.name}
+                                                </ListItemText>
+                                                <ListItemIcon>
+                                                    <Avatar style={{marginLeft:'auto',height:'26px',width:'26px'}} src={r.icon}/>
+                                                </ListItemIcon>
+                                            </ListItem>
+                                        </div>
+                                    )
+                                })
+                            }
+                        </List>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button
+                            onClick={()=>{setReactsDialog(false)}}
+                            color={'secondary'}
+                            >
+                            Close
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+                {
+                    props.data.own?(
+                        <MessageBox
+                            removeButton={props.data.own}
+                            onRemoveMessageClick={removeClick}
+                            position={props.data.own?'right':'left'}
+                            type={'text'}
+                            date={new Date(props.data.timestamp*1000)}
+                            replyButton={!isReply}
+                            notch={true}
+                            title={props.data.own?'You':props.data2.name}
+                            onReplyClick={replyClick}
+                            text={props.data.msg}
+                        />
+                    ):(
+                        <MessageBox
+                            removeButton={props.data.own}
+                            onRemoveMessageClick={removeClick}
+                            position={props.data.own?'right':'left'}
+                            type={'text'}
+                            avatar={props.data.image}
+                            date={new Date(props.data.timestamp*1000)}
+                            replyButton={!isReply}
+                            notch={true}
+                            title={props.data.own?'You':props.data.name}
+                            onReplyClick={replyClick}
+                            text={props.data.msg}
+                        />
+                    )
+                }
+
                 {
                     props.data.own?(
                         <div>
@@ -139,7 +229,7 @@ export default function Message(props) {
 
 
                                 <Paper style={{float:'right',marginLeft:'5px',padding:'5px',display:'flex'}}>
-                                    <div style={{color:'#0090ff',fontWeight:'bold'}}>
+                                    <div  onClick={()=>{setReactsDialog(true)}} style={{cursor:'pointer',color:'#0090ff',fontWeight:'bold'}}>
                                         {reactionList.length}
                                     </div>
                                 </Paper>
@@ -195,7 +285,7 @@ export default function Message(props) {
 
 
                                 <Paper style={{float:'left',marginRight:'5px',padding:'5px',display:'flex'}}>
-                                    <div style={{color:'#0090ff',fontWeight:'bold'}}>
+                                    <div onClick={()=>{setReactsDialog(true)}} style={{cursor:'pointer',color:'#0090ff',fontWeight:'bold'}}>
                                         {reactionList.length}
                                     </div>
                                 </Paper>
@@ -254,24 +344,126 @@ export default function Message(props) {
 else
     return(
         <div style={props.data.own?{paddingLeft:'100px',marginBottom:'55px'}:{paddingRight:'100px',marginBottom:'55px'}}>
-        <MessageBox
-            removeButton={props.data.own}
-            onRemoveMessageClick={removeClick}
-            reply={{
-                photoURL: 'https://facebook.github.io/react/img/logo.svg',
-                title: `${props.data.own?'You':props.data2.name} replied to ${replies.length} message${replies.length>1?'s':''}`,
-                titleColor: '#8717ae',
-                message: 'Click to view',
-            }}
-            position={props.data.own?'right':'left'}
-            type={'text'}
-            date={new Date(props.data.timestamp*1000)}
-            replyButton={!isReply}
-            notch={true}
-            title={props.data.own?'You':props.data2.name}
-            onReplyClick={replyClick}
-            text={props.data.msg}
-        />
+            <Dialog open={reactsDialog} onClose={()=>{setReactsDialog(false)}}>
+                <DialogTitle>
+                    {reactionList.length>0?reactionList.length:'No'} Reaction{reactionList.length>1?'s':''}
+                </DialogTitle>
+                <DialogContent>
+                    <List>
+                        {
+                            reactionList.map(r=>{
+
+                                return(
+                                    <ListItem>
+                                        <ListItemAvatar>
+                                            <Avatar src={r.image}>
+                                                {r.name.substr(0,1)}
+                                            </Avatar>
+                                        </ListItemAvatar>
+                                        <ListItemText>
+                                            {r.name}
+                                        </ListItemText>
+                                        <ListItemIcon>
+                                            <Avatar style={{marginLeft:'auto',height:'26px',width:'26px'}} src={r.icon}/>
+                                        </ListItemIcon>
+                                    </ListItem>
+                                )
+                            })
+                        }
+                    </List>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        onClick={()=>{setReactsDialog(false)}}
+                        color={'secondary'}
+                    >
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog open={repliesDialog} onClose={()=>{setReplies(false)}}>
+                <DialogTitle>
+                    Replied to below message{replies.length>1?'s':''}
+                </DialogTitle>
+                <DialogContent>
+                    <List>
+                        {
+                            replies && replies.map(r=>{
+
+                                return(
+                                    <ListItem>
+                                        <ListItemAvatar>
+                                            <Avatar src={r.image}>
+                                                {r.name?.substr(0,1)}
+                                            </Avatar>
+                                        </ListItemAvatar>
+                                        <ListItemText primary={r.name} secondary={r.MSG+' - at '+new Date(r.timestamp*1000).toLocaleString()}>
+
+                                        </ListItemText>
+                                    </ListItem>
+                                )
+                            })
+                        }
+                    </List>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        onClick={()=>{setRepliesDialog(false)}}
+                        color={'secondary'}
+                    >
+                        Close
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            {
+                props.data.own?(
+                    <MessageBox
+                        removeButton={props.data.own}
+                        onRemoveMessageClick={removeClick}
+                        reply={{
+                            photoURL: 'https://facebook.github.io/react/img/logo.svg',
+                            title: `${props.data.own?'You':props.data2.name} replied to ${replies.length} message${replies.length>1?'s':''}`,
+                            titleColor: '#8717ae',
+                            message: 'Click to view',
+                        }}
+                        onReplyMessageClick={()=>{
+                            setRepliesDialog(true)
+                        }}
+                        position={props.data.own?'right':'left'}
+                        type={'text'}
+                        date={new Date(props.data.timestamp*1000)}
+                        replyButton={!isReply}
+                        notch={true}
+                        title={props.data.own?'You':props.data2.name}
+                        onReplyClick={replyClick}
+                        text={props.data.msg}
+                    />
+                ):(
+                    <MessageBox
+                        removeButton={props.data.own}
+                        onRemoveMessageClick={removeClick}
+                        reply={{
+                            photoURL: 'https://facebook.github.io/react/img/logo.svg',
+                            title: `${props.data.own?'You':props.data2.name} replied to ${replies.length} message${replies.length>1?'s':''}`,
+                            titleColor: '#8717ae',
+                            message: 'Click to view',
+                        }}
+                        onReplyMessageClick={()=>{
+                            setRepliesDialog(true)
+                        }}
+                        position={props.data.own?'right':'left'}
+                        type={'text'}
+                        avatar={props.data.image}
+                        date={new Date(props.data.timestamp*1000)}
+                        replyButton={!isReply}
+                        notch={true}
+                        title={props.data.own?'You':props.data.name}
+                        onReplyClick={replyClick}
+                        text={props.data.msg}
+                    />
+                )
+            }
+
             {
                 props.data.own?(
                     <div>
@@ -279,7 +471,7 @@ else
 
 
                             <Paper style={{float:'right',marginLeft:'5px',padding:'5px',display:'flex'}}>
-                                <div style={{color:'#0090ff',fontWeight:'bold'}}>
+                                <div onClick={()=>{setReactsDialog(true)}} style={{cursor:'pointer',color:'#0090ff',fontWeight:'bold'}}>
                                     {reactionList.length}
                                 </div>
                             </Paper>
@@ -335,7 +527,7 @@ else
 
 
                             <Paper style={{float:'left',marginRight:'5px',padding:'5px',display:'flex'}}>
-                                <div style={{color:'#0090ff',fontWeight:'bold'}}>
+                                <div onClick={()=>{setReactsDialog(true)}} style={{cursor:'pointer',color:'#0090ff',fontWeight:'bold'}}>
                                     {reactionList.length}
                                 </div>
                             </Paper>

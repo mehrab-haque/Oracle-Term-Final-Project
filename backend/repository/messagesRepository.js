@@ -64,7 +64,7 @@ data:{}
             }
         }
         var placeId = result.data[0].ID;
-        const msgQuery = 'select messages.id,messages.msg,senders_receivers.timestamp,froms.user_id from messages,senders_receivers,froms  where  messages.place_id =:0  and senders_receivers.message_id=messages.id and froms.sender_id=senders_receivers.sender_id order by senders_receivers.timestamp ';
+        const msgQuery = 'select messages.id,messages.msg,senders_receivers.timestamp,froms.user_id, users.name, users.image from messages,senders_receivers,froms,users  where users.id=froms.user_id and messages.place_id =:0  and senders_receivers.message_id=messages.id and froms.sender_id=senders_receivers.sender_id order by senders_receivers.timestamp ';
         const msgParams = [placeId];
         var msgResult = await this.query(msgQuery, msgParams)
         var allRes;
@@ -72,6 +72,8 @@ data:{}
             var obj = {
                 id:d.ID,
                 msg: d.MSG,
+                image:d.IMAGE,
+                name:d.NAME,
                 timestamp: d.TIMESTAMP,
                 isConnected: true
             }
@@ -92,7 +94,7 @@ data:{}
 
     getGroupMessages = async (data, id) => {
         var placeId = id;
-        const msgQuery = 'select messages.id,messages.msg,senders_receivers.timestamp,froms.user_id from messages,senders_receivers,froms  where  messages.place_id =:0  and senders_receivers.message_id=messages.id and froms.sender_id=senders_receivers.sender_id order by senders_receivers.timestamp ';
+        const msgQuery = 'select messages.id,users.name,users.image,messages.msg,senders_receivers.timestamp,froms.user_id from messages,senders_receivers,froms,users  where froms.user_id=users.id and  messages.place_id =:0  and senders_receivers.message_id=messages.id and froms.sender_id=senders_receivers.sender_id order by senders_receivers.timestamp ';
         const msgParams = [placeId];
         var msgResult = await this.query(msgQuery, msgParams)
         var allRes;
@@ -100,6 +102,8 @@ data:{}
             var obj = {
                 id:d.ID,
                 msg: d.MSG,
+                image:d.IMAGE,
+                name:d.NAME,
                 timestamp: d.TIMESTAMP,
                 isConnected: true
             }
@@ -164,32 +168,77 @@ data:{}
             placeId=data.to
         }
         //console.log('from find')
-        const fromFindQuery = `select count(*) as count from froms where user_id = :0`
-        const fromFindParams = [data.user_id]
-        const fromFindResult = await this.query(fromFindQuery, fromFindParams)
-        if (fromFindResult.data[0].COUNT === 0) {
-            //console.log('create sender')
-            const senderCreateQuery = `insert into senders (type) values (:0)`
-            const senderCreateParams = ['sender']
-            await this.query(senderCreateQuery, senderCreateParams)
 
-            //console.log('insert id')
-            const senderIdQuery = `select max(id) as id from senders`
-            const senderIdParams = []
-            const senderIdResult = await this.query(senderIdQuery, senderIdParams)
-            senderId = senderIdResult.data[0].ID;
-            //console.log('create from')
-            const fromCreateQuery = `insert into froms (user_id,sender_id) values (:0 , :1)`
-            const fromCreateParams = [data.user_id, senderIdResult.data[0].ID]
-            const fromCreateResult = await this.query(fromCreateQuery, fromCreateParams)
-        } else {
-            const senderFindQuery = `select sender_id as id from froms where user_id=:0`
-            const senderFindParams = [data.user_id]
-            const senderFindResult = await this.query(senderFindQuery, senderFindParams);
+        if(data.type===2 && data.senders!==null){
+            var uids=data.senders.map(s=>s.value)
+            if(uids.indexOf(data.user_id)<0)uids.push(data.user_id)
+            //senders froms check
+            var query=``
+            uids.map((uid,i)=>{
+                query+=`select sender_id from froms where user_id = ${uid}`
+                if(i!==uids.length-1)query+=` INTERSECT `
+            })
 
-            senderId = senderFindResult.data[0].ID;
+            const query1=`select sender_id, count(user_id) as n from froms where sender_id in (${query}) group by sender_id`
+            const result1=await this.query(query1,[])
+            //console.log(senderId)
 
+            result1.data.map(r=>{
+                if(r.N===uids.length)
+                    senderId=r.SENDER_ID
+            })
+
+            if(senderId===null || senderId === undefined){
+                console.log('sender create')
+                const senderCreateQuery = `insert into senders (type) values (:0)`
+                const senderCreateParams = ['sender']
+                await this.query(senderCreateQuery, senderCreateParams)
+
+                //console.log('reciever id')
+                const senderIdQuery = `select max(id) as id from senders`
+                const senderIdParams = []
+                const senderIdResult = await this.query(senderIdQuery, senderIdParams)
+
+                senderId = senderIdResult.data[0].ID;
+
+                await Promise.all(uids.map(async uid=>{
+                    //console.log('create to')
+                    const fromCreateQuery = `insert into froms (user_id,sender_id) values (:0 , :1)`
+                    const fromCreateParams = [uid, senderId]
+                    await this.query(fromCreateQuery, fromCreateParams)
+                }))
+
+            }
+        }else{
+            const fromFindQuery = `select count(*) as count from froms where user_id = :0`
+            const fromFindParams = [data.user_id]
+            const fromFindResult = await this.query(fromFindQuery, fromFindParams)
+            if (fromFindResult.data[0].COUNT === 0) {
+                //console.log('create sender')
+                const senderCreateQuery = `insert into senders (type) values (:0)`
+                const senderCreateParams = ['sender']
+                await this.query(senderCreateQuery, senderCreateParams)
+
+                //console.log('insert id')
+                const senderIdQuery = `select max(id) as id from senders`
+                const senderIdParams = []
+                const senderIdResult = await this.query(senderIdQuery, senderIdParams)
+                senderId = senderIdResult.data[0].ID;
+                //console.log('create from')
+                const fromCreateQuery = `insert into froms (user_id,sender_id) values (:0 , :1)`
+                const fromCreateParams = [data.user_id, senderIdResult.data[0].ID]
+                const fromCreateResult = await this.query(fromCreateQuery, fromCreateParams)
+            } else {
+                const senderFindQuery = `select sender_id as id from froms where user_id=:0`
+                const senderFindParams = [data.user_id]
+                const senderFindResult = await this.query(senderFindQuery, senderFindParams);
+
+                senderId = senderFindResult.data[0].ID;
+
+            }
         }
+
+
 
         if(data.type===1){
             //console.log('to find')
@@ -328,7 +377,7 @@ data:{}
             }else{
                 groupMembersResult.data.map((m,i)=>{
                     if(m.USER_ID!==data.user_id && m.USER_ID+'' in socketUserTable){
-                        console.log(m.USER_ID)
+                        //console.log(m.USER_ID)
                         socketUserTable[m.USER_ID+''].map(async sid=>{
                             await io.to(sid).emit('message_group', {
                                 id:msgIdResult.data[0].ID,

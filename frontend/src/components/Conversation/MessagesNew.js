@@ -1,4 +1,10 @@
+import PropTypes from 'prop-types';
+import Select from 'react-select';
+import AutoDeleteIcon from '@mui/icons-material/AutoDelete';
+import InfoIcon from '@mui/icons-material/Info';
 import SettingsIcon from '@mui/icons-material/Settings';
+import MenuIcon from '@mui/icons-material/Menu';
+import EditIcon from '@mui/icons-material/Edit';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ReactTimeAgo from 'react-time-ago'
@@ -62,6 +68,13 @@ function MessagesNew(props) {
 
     const storage = getStorage(app);
 
+    const [selectedSenders,setSelectedSenders]=useState(null)
+
+    const handleSendersChange = (selectedOptions) => {
+        console.log(selectedOptions)
+        setSelectedSenders(selectedOptions)
+    };
+
 
     const [imagePreview, setImagePreview] = useState(null)
     const [imagePreview2, setImagePreview2] = useState(null)
@@ -88,6 +101,18 @@ function MessagesNew(props) {
     const [state, setState] = useState(0)
 
     const [replies,setReplies]=useState([])
+
+    const { window } = props;
+    const [mobileOpen, setMobileOpen] = React.useState(false);
+    const [mobileOpen2, setMobileOpen2] = React.useState(false);
+
+    const handleDrawerToggle = () => {
+        setMobileOpen(!mobileOpen);
+    };
+
+    const handleDrawerToggle2 = () => {
+        setMobileOpen2(!mobileOpen2);
+    };
 
     useEffect(()=>{
         console.log(replies)
@@ -165,7 +190,7 @@ function MessagesNew(props) {
     const inboxClick = (data) => {
 
         setReplies([])
-
+        setSelectedSenders(null)
         setData2(data);
         setData([])
         data2Ref.current=data
@@ -182,6 +207,7 @@ function MessagesNew(props) {
             setState(2);
             axios.get('http://localhost:8080/api/v1.0.0/group/getMembers/' + data.id, {headers: {authorization: 'Bearer ' + cookies.get('token')}})
                 .then(res => {
+                    setSelectedSenders(null) ;
                     setMembers(res.data);
                     membersRef.current=res.data
                     let v = chatHeads.map(c => {
@@ -198,7 +224,7 @@ function MessagesNew(props) {
                         } else return null;
 
                     })
-                    setOthers(v);
+                    setSelectedSenders(null) ; setOthers(v);
                     othersRef.current=v
 
                 })
@@ -355,6 +381,8 @@ function MessagesNew(props) {
         }
 
     }
+    const container = window !== undefined ? () => window().document.body : undefined;
+
 
 
     const sendMessageClick = async () => {
@@ -365,7 +393,7 @@ function MessagesNew(props) {
         if (msgText.trim().length === 0)
             showToast(`Message can't be empty`)
         else {
-            await sendMessage(data2.id, data2.type, msgText,replies)
+            await sendMessage(data2.id, data2.type, msgText,replies,selectedSenders)
             msgRef.current.value=''
             setReplies([])
         }
@@ -433,14 +461,14 @@ function MessagesNew(props) {
         socket.on('group_add_member', d => {
             if(data2Ref.current && data2Ref.current.id===d.groupId) {
                 membersRef.current = [d, ...membersRef.current]
-                setMembers(membersRef.current)
+                setSelectedSenders(null) ; setMembers(membersRef.current)
                 var newOthers = []
                 othersRef.current.map(o => {
                     if (o && o.id !== d.ID)
                         newOthers.push(o)
                 })
                 othersRef.current = [...newOthers]
-                setOthers(othersRef.current)
+                setSelectedSenders(null) ; setOthers(othersRef.current)
             }
 
         })
@@ -452,14 +480,14 @@ function MessagesNew(props) {
                     name:d.NAME,
                     image:d.IMAGE
                 }, ...othersRef.current]
-                setOthers(othersRef.current)
+                setSelectedSenders(null) ; setOthers(othersRef.current)
                 var newMembers = []
                 membersRef.current.map(o => {
                     if (o && o.ID !== d.ID)
                         newMembers.push(o)
                 })
                 membersRef.current = [...newMembers]
-                setMembers(membersRef.current)
+                setSelectedSenders(null) ; setMembers(membersRef.current)
             }
 
         })
@@ -477,11 +505,12 @@ function MessagesNew(props) {
                 messagesRef.current=null
                 setData(messagesRef.current)
                 data2Ref.current=null
+                setSelectedSenders(null)
                 setData2(data2Ref.current)
                 membersRef.current=null
                 othersRef.current=null
-                setMembers(membersRef.current)
-                setOthers(othersRef.current)
+                setSelectedSenders(null) ; setMembers(membersRef.current)
+                setSelectedSenders(null) ; setOthers(othersRef.current)
             }
 
 
@@ -491,14 +520,14 @@ function MessagesNew(props) {
                     name:d.NAME,
                     image:d.IMAGE
                 }, ...othersRef.current]
-                setOthers(othersRef.current)
+                setSelectedSenders(null) ; setOthers(othersRef.current)
                 var newMembers = []
                 membersRef.current.map(o => {
                     if (o && o.ID !== d.ID)
                         newMembers.push(o)
                 })
                 membersRef.current = [...newMembers]
-                setMembers(membersRef.current)
+                setSelectedSenders(null) ; setMembers(membersRef.current)
             }
 
         })
@@ -624,14 +653,29 @@ function MessagesNew(props) {
         logout(dispatch);
     }
 
+
+
     return (
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
             <AppBar
+                sx={{
+                    backgroundColor:'#ffffff',color:'#0090ff',
+                    width: { sm: `calc(100% - ${drawerWidth}px)` },
+                    ml: { sm: `${drawerWidth}px` },
+                }}
                 position="fixed"
-                sx={{ width: `calc(100% - ${drawerWidth*2}px)`,backgroundColor:'#ffffff',color:'#0090ff', mr: `${drawerWidth}px` }}
             >
                 <Toolbar>
+                    <IconButton
+                        color="inherit"
+                        aria-label="open drawer"
+                        edge="start"
+                        onClick={handleDrawerToggle}
+                        sx={{ mr: 2, display: { sm: 'none' } }}
+                    >
+                        <MenuIcon />
+                    </IconButton>
                     <div>
                         <div style={{color:'#000000',fontSize:'1.3em',display:'flex',alignItems:'center'}}>
                             {
@@ -648,10 +692,71 @@ function MessagesNew(props) {
                         <Button onClick={signoutClick} variant="outlined" startIcon={<LogoutIcon />}>
                             Logout
                         </Button>
+                        <IconButton
+                            color="inherit"
+                            aria-label="open drawer"
+                            edge="start"
+                            style={{marginRight:'-10px',marginLeft:'5px'}}
+                            onClick={handleDrawerToggle2}
+                            sx={{ mr: 2, display: { sm: 'none' } }}
+                        >
+                            <InfoIcon />
+                        </IconButton>
 
                     </div>
                 </Toolbar>
             </AppBar>
+            <Dialog onClose={handleClose} open={open}>
+                <DialogTitle>Edit Profile</DialogTitle>
+
+                <DialogContent >
+                    <TextField
+                        id="outlined-name-input"
+                        label="Name"
+                        defaultValue={profileData.name ? profileData.name : ''}
+                        type="text"
+                        inputRef={nameRef}
+                        style={{marginTop: '20px'}}
+                        autoFocus
+                        margin="dense"
+
+                    /><br/>
+
+                    <TextField
+                        id="outlined-password-input"
+                        label="Status"
+                        defaultValue={profileData.status ? profileData.status : ''}
+                        type="text"
+                        inputRef={statusRef}
+                        style={{marginTop: '20px'}}
+                        autoFocus
+                        margin="dense"
+
+
+                    /><br/>
+                    <input
+                        style={{display: "none"}}
+                        id="contained-button-file"
+                        type="file"
+                        onChange={onImageChange}
+                    />
+                    <center>
+                        <div>
+                            <img style={{marginTop: "10px"}} src={imagePreview} height={'100px'} width={'100px'}/>
+                        </div>
+                        <label htmlFor="contained-button-file">
+                            <Button variant="contained" color="primary" component="span" style={{marginTop: "10px"}}>
+                                Upload Image
+                            </Button>
+                        </label>
+                        <Button onClick={upload} variant="contained" color="primary" component="span"
+                                style={{marginLeft: "10px", marginTop: '10px'}}>
+                            Update
+                        </Button>
+                    </center>
+
+                </DialogContent>
+            </Dialog>
             <Dialog onClose={handleClose2} open={open2}>
                 <DialogTitle>Create Group</DialogTitle>
 
@@ -693,6 +798,13 @@ function MessagesNew(props) {
                 </DialogContent>
             </Dialog>
             <Drawer
+                container={container}
+                variant="temporary"
+                open={mobileOpen}
+                onClose={handleDrawerToggle}
+                ModalProps={{
+                    keepMounted: true,
+                }}
                 sx={{
                     width: drawerWidth,
                     flexShrink: 0,
@@ -701,12 +813,34 @@ function MessagesNew(props) {
                         boxSizing: 'border-box',
                     },
                 }}
-                variant="permanent"
                 anchor="left"
             >
                 <Toolbar >
+                    {
+                        profileData && Object.keys(profileData)!==0?(
+                            <div style={{display:'flex',alignItems:'center'}}>
+                                <Avatar src={profileData.image} style={{marginLeft:'-10px',marginRight:'10px',height:'50px',width:'50px'}}>
+                                    {
+                                        profileData.name?.substr(0,1)
+                                    }
+                                </Avatar>
+                                <div>
+                                    <b>{
+                                        profileData.name
+                                    }</b>
+                                </div>
+
+                            </div>
+                        ):(
+                            <div/>
+                        )
+                    }
                     <div style={{width:'100%'}}>
-                        <AddCircleIcon onClick={()=>{setOpen2(true)}} style={{color:'#0090ff',float:'right',marginLeft:'auto',cursor:'pointer'}}/>
+                        <div style={{float:'right',marginLeft:'auto',paddingTop:'10px'}}>
+                            <EditIcon onClick={()=>{setOpen(true)}} style={{color:'#0090ff',marginRight:'5px',cursor:'pointer'}}/>
+                            <AddCircleIcon onClick={()=>{setOpen2(true)}} style={{color:'#0090ff',cursor:'pointer'}}/>
+
+                        </div>
                     </div>
                 </Toolbar>
                 <Divider />
@@ -723,12 +857,72 @@ function MessagesNew(props) {
                                         alt: c.name,
                                         title: c.name,
                                         subtitle: c.message.text,
-                                        date: new Date(c.message.timestamp*1000),
+                                        date: c.message.timestamp===0?Date.now():new Date(c.message.timestamp*1000),
                                         unread: c.message.seen?1:0,
                                     }
                                 )
                             })}
                          />
+                    )
+                }
+            </Drawer>
+            <Drawer
+                variant="permanent"
+                anchor="left"
+                sx={{
+                    display: { xs: 'none', sm: 'block' },
+                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+                }}
+                open
+            >
+                <Toolbar >
+                    {
+                        profileData && Object.keys(profileData)!==0?(
+                            <div style={{display:'flex',alignItems:'center'}}>
+                                <Avatar src={profileData.image} style={{marginLeft:'-10px',marginRight:'10px',height:'50px',width:'50px'}}>
+                                    {
+                                        profileData.name?.substr(0,1)
+                                    }
+                                </Avatar>
+                                <div>
+                                    <b>{
+                                        profileData.name
+                                    }</b>
+                                </div>
+
+                            </div>
+                        ):(
+                            <div/>
+                        )
+                    }
+                    <div style={{width:'100%'}}>
+                        <div style={{float:'right',marginLeft:'auto',paddingTop:'10px'}}>
+                            <EditIcon onClick={()=>{setOpen(true)}} style={{color:'#0090ff',marginRight:'5px',cursor:'pointer'}}/>
+                            <AddCircleIcon onClick={()=>{setOpen2(true)}} style={{color:'#0090ff',cursor:'pointer'}}/>
+
+                        </div>
+                    </div>
+                </Toolbar>
+                <Divider />
+                {
+                    profileData.name === undefined ? <LinearProgress/>:(
+                        <ChatList
+                            className='chat-list'
+                            onClick={chatHeadClick}
+                            dataSource={chatHeads.map((c, i) => {
+                                return(
+                                    {
+                                        data:c,
+                                        avatar: c.image,
+                                        alt: c.name,
+                                        title: c.name,
+                                        subtitle: c.message.text,
+                                        date: c.message.timestamp===0?Date.now():new Date(c.message.timestamp*1000),
+                                        unread: c.message.seen?1:0,
+                                    }
+                                )
+                            })}
+                        />
                     )
                 }
             </Drawer>
@@ -782,6 +976,13 @@ function MessagesNew(props) {
                 }
             </Box>
             <Drawer
+                container={container}
+                variant="temporary"
+                open={mobileOpen2}
+                onClose={handleDrawerToggle2}
+                ModalProps={{
+                    keepMounted: true,
+                }}
                 sx={{
                     width: drawerWidth,
                     flexShrink: 0,
@@ -790,14 +991,13 @@ function MessagesNew(props) {
                         boxSizing: 'border-box',
                     },
                 }}
-                variant="permanent"
                 anchor="right"
             >
                 <Toolbar >
                     {
                         data2 && data2.type===2?(
                             <div style={{width:'100%'}}>
-                                <SettingsIcon onClick={()=>{setOpen2(true)}} style={{color:'#0090ff',float:'right',marginLeft:'auto',cursor:'pointer'}}/>
+                                <DeletedDialog data2={data2}/>
                             </div>
                         ):(
                             <div>
@@ -829,8 +1029,144 @@ function MessagesNew(props) {
                     )
                 }
             </Drawer>
+            <Drawer
+                variant="permanent"
+                anchor="right"
+                sx={{
+                    display: { xs: 'none', sm: 'block' },
+                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+                }}
+                open
+            >
+                <Toolbar >
+                    {
+                        data2 && data2.type===2?(
+                            <div style={{width:'100%'}}>
+                                <DeletedDialog data2={data2}/>
+                            </div>
+                        ):(
+                            <div>
+
+                            </div>
+                        )
+                    }
+
+                </Toolbar>
+                <Divider />
+
+                {
+                    data2 && members && data2.type===2?(
+                        <div key={data2.id}>
+                            <b style={{marginLeft:'10px',marginTop:'10px'}}>Message Options : </b>
+                            <Select
+                                isMulti={true}
+                                isSearchable={true}
+                                value={selectedSenders}
+                                onChange={handleSendersChange}
+                                options={members.map(m=>{return {value:m.ID,label:m.NAME,name:m.NAME,image:m.IMAGE}})}
+                            />
+                        </div>
+                    ):(
+                        <div/>
+                    )
+                }
+
+
+
+
+
+
+                {state == 2 && members ? <div style={{marginTop:'10px'}}>
+                    <b style={{marginLeft:'10px',marginTop:'10px'}}>Group Members ({members.length})</b>
+                    <b style={{marginRight:'10px',cursor:'pointer',float:'right',color:'#dd0000'}}>Leave</b>
+                </div>: null}
+                {
+                    state == 2 && members ? (
+                        <GroupMembers groupData={data2} members={members}/>
+                    ):(
+                        <div/>
+                    )
+                }
+                {state == 2 && others ? <b style={{marginLeft:'10px',marginTop:'10px'}}>Add Members</b> : null}
+
+                {
+                    state == 2 && others ? (
+                        <GroupOthers groupData={data2} others={others}/>
+                    ):(
+                        <div/>
+                    )
+                }
+            </Drawer>
         </Box>
     );
+}
+
+const DeletedDialog=props=>{
+
+    const [open, setOpen]=useState(false)
+    const [groupId,setGroupId]=useState(props.data2.id)
+
+    const [data,setData]=useState(null)
+
+    const [done,isDone]=useState(false)
+
+    const fetch=()=>{
+        setGroupId(props.data2.id)
+        axios.get('http://localhost:8080/api/v1.0.0/message/group/get/deletedMessages/'+props.data2.id, {headers: {authorization: 'Bearer ' + cookies.get('token')}})
+            .then(res => {
+                setData(res.data)
+                isDone(true)
+            })
+
+            .catch(e => {
+                isDone(false)
+            })
+    }
+
+    useEffect(()=>{
+        fetch()
+    },[props.data2.id])
+
+    return(
+        <div>
+            <Dialog open={open} onClose={()=>{setOpen(false)}}>
+                <DialogTitle>
+                    Deleted Messages
+                </DialogTitle>
+                <DialogContent>
+                    {
+                        !isDone?(
+                            <div>
+                                You are not allowed to see deleted messages
+                            </div>
+                        ):(
+                            <List>
+                                {
+                                    data && data.map(d=>{
+                                        return(
+                                            <ListItem>
+                                                <ListItemAvatar>
+                                                    <Avatar>
+                                                        !
+                                                    </Avatar>
+                                                </ListItemAvatar>
+                                                <ListItemText primary={d.MSG} secondary={'deleted by sender(s)'}/>
+                                            </ListItem>
+
+                                        )
+                                    })
+                                }
+                            </List>
+                        )
+                    }
+                </DialogContent>
+            </Dialog>
+            <AutoDeleteIcon onClick={()=>{
+                setOpen(true);
+                fetch()
+            }} style={{color:'#0090ff',float:'right',marginLeft:'auto',cursor:'pointer'}}/>
+        </div>
+    )
 }
 
 const GroupMembers=props=>{
@@ -934,6 +1270,10 @@ const GroupOthers=props=>{
         <div/>
     )
 }
+
+MessagesNew.propTypes = {
+    window: PropTypes.func,
+};
 
 export default MessagesNew
 export {socket}

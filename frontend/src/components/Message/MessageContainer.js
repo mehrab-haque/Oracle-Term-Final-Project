@@ -15,6 +15,29 @@ const  MessageContainer= (props)=>{
 
     var [messages,setMessage]=useState(props.data)
 
+
+
+    var getRepliesData=array=>{
+        var arr=[...array]
+        arr.map((a,i)=>{
+            props.data.map(d=>{
+                if(d.id===a.ID){
+                    arr[i]={...arr[i],
+                        name:d.name,
+                        image:d.image,
+                        timestamp:d.timestamp,
+                        own:d.own
+                    }
+                }
+            })
+        })
+        return arr
+
+
+    }
+
+
+
   useEffect(() => {
   
         setMessage(props.data)
@@ -29,7 +52,7 @@ messages && messages.map(d=>{
 
 return (
 
-  <Message replies={props.replies} data2={props.data2} modifyReplies={props.modifyReplies} key={d.id} reacts={props.reacts}  data={d} />
+  <Message getRepliesDetails={getRepliesData} replies={props.replies} data2={props.data2} modifyReplies={props.modifyReplies} key={d.id} reacts={props.reacts}  data={d} />
 )
 
 
