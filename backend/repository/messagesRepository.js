@@ -64,7 +64,7 @@ data:{}
             }
         }
         var placeId = result.data[0].ID;
-        const msgQuery = 'select messages.id,messages.msg,senders_receivers.timestamp,froms.user_id from messages,senders_receivers,froms  where  messages.place_id =:0  and senders_receivers.message_id=messages.id and froms.sender_id=senders_receivers.sender_id order by senders_receivers.timestamp ';
+        const msgQuery = 'select messages.* ,senders_receivers.timestamp,froms.user_id from messages,senders_receivers,froms  where  messages.place_id =:0  and senders_receivers.message_id=messages.id and froms.sender_id=senders_receivers.sender_id order by senders_receivers.timestamp ';
         const msgParams = [placeId];
         var msgResult = await this.query(msgQuery, msgParams)
         var allRes;
@@ -73,7 +73,12 @@ data:{}
                 id:d.ID,
                 msg: d.MSG,
                 timestamp: d.TIMESTAMP,
-                isConnected: true
+                isConnected: true,
+		till:d.TILL,
+		schedule:d.SCHEDULE,
+		is_deleted:d.IS_DELETED,
+		pass:d.PASS,
+		is_forwarded:d.IS_FORWARDED
             }
 
             if (d.USER_ID === data.user_id) {
@@ -92,7 +97,7 @@ data:{}
 
     getGroupMessages = async (data, id) => {
         var placeId = id;
-        const msgQuery = 'select messages.id,messages.msg,senders_receivers.timestamp,froms.user_id from messages,senders_receivers,froms  where  messages.place_id =:0  and senders_receivers.message_id=messages.id and froms.sender_id=senders_receivers.sender_id order by senders_receivers.timestamp ';
+        const msgQuery = 'select messages.* , senders_receivers.timestamp,froms.user_id from messages,senders_receivers,froms  where  messages.place_id =:0  and senders_receivers.message_id=messages.id and froms.sender_id=senders_receivers.sender_id order by senders_receivers.timestamp ';
         const msgParams = [placeId];
         var msgResult = await this.query(msgQuery, msgParams)
         var allRes;
@@ -101,8 +106,14 @@ data:{}
                 id:d.ID,
                 msg: d.MSG,
                 timestamp: d.TIMESTAMP,
-                isConnected: true
+                isConnected: true,
+		till:d.TILL,
+		schedule:d.SCHEDULE,
+		is_deleted:d.IS_DELETED,
+		pass:d.PASS,
+		is_forwarded:d.IS_FORWARDED
             }
+
 
             if (d.USER_ID === data.user_id) {
                 obj['own'] = true;
