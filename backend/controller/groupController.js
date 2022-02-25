@@ -7,6 +7,20 @@ class GroupController extends Controller{
         super();
     }
 
+  mergedMessages = async(req, res) => {
+
+        let result = await groupRepository.getMergedMessages(req.body)
+        if (result.success) {
+            res.status(200).json(result.data);
+        } else {
+            res.status(404).json({
+                success: false,
+            });
+        }
+    }
+
+
+
     removedMembers = async(req, res) => {
 
         let result = await groupRepository.getRemovedMembers(req.body)

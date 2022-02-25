@@ -12,6 +12,56 @@ class GroupRepository extends Repository{
     }
 
 
+ getMergedMessages=async (data)=>{
+
+let str='';
+
+    data.places.map((d,i)=>{
+	if(i<data.places.length-1)
+  str+=`select user_id from members where group_id= ${d} Intersect `
+
+		})
+str+=`select user_id from members where group_id= ${data.places[data.places.length-1]}`
+
+ const params=[];
+var result=await this.query(str,params)
+var members=result.data
+console.log(members)
+var allres =await Promise.all(data.places.map(async (d,i)=>{
+
+const query=`select messages.msg,messages.id,messages.place_id,senders_receivers.timestamp,froms.user_id from messages,senders_receivers,froms where messages.place_id=${d} and messages.id=senders_receivers.message_id and froms.sender_id=senders_receivers.sender_id`;
+
+ const params=[];
+return this.query(query,params)
+
+})
+
+)
+var allResults=[];
+
+allres.forEach(a=>{
+a.data.forEach(d=>{
+members.forEach(m=>{
+if(d.USER_ID==m.USER_ID){
+allResults.push(d);
+}
+})
+})
+
+})
+
+
+
+allResults=allResults.sort((a,b)=>a.TIMESTAMP-b.TIMESTAMP);
+
+console.log(allResults);     
+        return {
+success:true,
+data:allResults
+
+}
+    }
+
  getRemovedMembers=async (data)=>{
         const query='select users.id,users.name,users.image from users,removedMembers where removedMembers.group_id=:0 and users.id= removedMembers.user_id'
         const params=[data.groupId];
