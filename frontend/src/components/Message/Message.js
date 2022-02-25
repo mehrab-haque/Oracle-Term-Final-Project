@@ -72,6 +72,7 @@ export default function Message(props) {
     }
 
     const [reactsDialog,setReactsDialog]=useState(false)
+    const [sendersDialog,setSendersDialog]=useState(false)
     const [repliesDialog,setRepliesDialog]=useState(false)
 
     const addReact = async reactId => {
@@ -90,6 +91,7 @@ export default function Message(props) {
             props.modifyReplies(props.data,false)
         }
         setReply(!isReply)
+        setSendersDialog(false)
     }
 
     useEffect(()=>{
@@ -113,7 +115,28 @@ export default function Message(props) {
         return icon
     }
 
+    const [title,setTitle]=useState('')
+
     useEffect(async () => {
+        if(props.data2.type===1){
+            if(props.data.own)
+                setTitle('You')
+            else setTitle(props.data2.name)
+        }else{
+            if(props.data.own){
+                var str='You'
+                if(props.data.senders.length>1)str+=` and ${props.data.senders.length-1} other${props.data.senders.length===2?'':'s'}`
+                setTitle(str)
+            }else{
+                var str=props.data.senders[0].name
+                if(props.data.senders.length==2)str+=` and ${props.data.senders[1].name}`
+                if(props.data.senders.length>2)str+=`, ${props.data.senders[1].name} and ${props.data.senders.length-2} other${props.data.senders.length===3?'':'s'}`
+                setTitle(str)
+            }
+        }
+
+
+
         var reactsResult = await axios.post(`${api_base_url}react/list_msg`, {msgId: props.data.id}, {headers: {authorization: 'Bearer ' + cookies.get('token')}})
         var arr=[]
         reactsResult.data.map((r,i)=>{
@@ -135,8 +158,6 @@ export default function Message(props) {
         var repliesResult=await axios.get(`${api_base_url}message/replies/get/${props.data.id}`,{headers: {authorization: 'Bearer ' + cookies.get('token')}})
 
         setReplies(props.getRepliesDetails(repliesResult.data))
-        console.log(props.getRepliesDetails(repliesResult.data))
-
     }, [])
 
     const removeClick=async ()=>{
@@ -147,7 +168,10 @@ export default function Message(props) {
         },  {headers: {authorization: 'Bearer ' + cookies.get('token')}})
     }
 
-
+    const titleClick=()=>{
+        if(props.data2.type===2)
+            setSendersDialog(true)
+    }
 
     if(replies.length===0){
         return(
@@ -192,8 +216,54 @@ export default function Message(props) {
                     </DialogActions>
                 </Dialog>
                 {
+                    'senders' in props.data?(
+                        <Dialog open={sendersDialog && !isReply} onClose={()=>{setSendersDialog(false)}}>
+                            <DialogTitle>
+                                {props.data.senders.length} Sender{props.data.senders.length>1?'s':''}
+                            </DialogTitle>
+                            <DialogContent>
+                                <List>
+                                    {
+                                        props.data.senders.map(r=>{
+
+                                            return(
+                                                <div>
+                                                    <ListItem>
+                                                        <ListItemAvatar>
+                                                            <Avatar src={r.image}>
+                                                                {r.name.substr(0,1)}
+                                                            </Avatar>
+                                                        </ListItemAvatar>
+                                                        <ListItemText>
+                                                            {r.name}
+                                                        </ListItemText>
+                                                        <ListItemIcon>
+                                                            <Avatar style={{marginLeft:'auto',height:'26px',width:'26px'}} src={r.icon}/>
+                                                        </ListItemIcon>
+                                                    </ListItem>
+                                                </div>
+                                            )
+                                        })
+                                    }
+                                </List>
+                            </DialogContent>
+                            <DialogActions>
+                                <Button
+                                    onClick={()=>{setSendersDialog(false)}}
+                                    color={'secondary'}
+                                >
+                                    Close
+                                </Button>
+                            </DialogActions>
+                        </Dialog>
+                    ):(
+                        <div/>
+                    )
+                }
+                {
                     props.data.own?(
                         <MessageBox
+                            onClick={titleClick}
                             removeButton={props.data.own}
                             onRemoveMessageClick={removeClick}
                             position={props.data.own?'right':'left'}
@@ -201,21 +271,22 @@ export default function Message(props) {
                             date={new Date(props.data.timestamp*1000)}
                             replyButton={!isReply}
                             notch={true}
-                            title={props.data.own?'You':props.data2.name}
+                            title={title}
                             onReplyClick={replyClick}
                             text={props.data.msg}
                         />
                     ):(
                         <MessageBox
+                            onClick={titleClick}
                             removeButton={props.data.own}
                             onRemoveMessageClick={removeClick}
                             position={props.data.own?'right':'left'}
                             type={'text'}
-                            avatar={props.data.image}
+                            avatar={props.data2.type===2 && 'senders' in props.data?props.data.senders[0].image:props.data2.image}
                             date={new Date(props.data.timestamp*1000)}
                             replyButton={!isReply}
                             notch={true}
-                            title={props.data.own?'You':props.data.name}
+                            title={title}
                             onReplyClick={replyClick}
                             text={props.data.msg}
                         />
@@ -418,6 +489,7 @@ else
             {
                 props.data.own?(
                     <MessageBox
+                        onClick={titleClick}
                         removeButton={props.data.own}
                         onRemoveMessageClick={removeClick}
                         reply={{
@@ -434,12 +506,15 @@ else
                         date={new Date(props.data.timestamp*1000)}
                         replyButton={!isReply}
                         notch={true}
-                        title={props.data.own?'You':props.data2.name}
+                        title={title}
                         onReplyClick={replyClick}
                         text={props.data.msg}
                     />
                 ):(
                     <MessageBox
+                        onClick={titleClick}
+
+
                         removeButton={props.data.own}
                         onRemoveMessageClick={removeClick}
                         reply={{
@@ -453,11 +528,11 @@ else
                         }}
                         position={props.data.own?'right':'left'}
                         type={'text'}
-                        avatar={props.data.image}
+                        avatar={props.data2.type===2 && 'senders' in props.data?props.data.senders[0].image:props.data2.image}
                         date={new Date(props.data.timestamp*1000)}
                         replyButton={!isReply}
                         notch={true}
-                        title={props.data.own?'You':props.data.name}
+                        title={title}
                         onReplyClick={replyClick}
                         text={props.data.msg}
                     />

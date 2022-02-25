@@ -94,21 +94,36 @@ data:{}
 
     getGroupMessages = async (data, id) => {
         var placeId = id;
-        const msgQuery = 'select messages.id,users.name,users.image,messages.msg,senders_receivers.timestamp,froms.user_id from messages,senders_receivers,froms,users  where froms.user_id=users.id and  messages.place_id =:0  and senders_receivers.message_id=messages.id and froms.sender_id=senders_receivers.sender_id order by senders_receivers.timestamp ';
+        const msgQuery = 'select froms.sender_id,messages.id,users.name,users.image,messages.msg,senders_receivers.timestamp,froms.user_id from messages,senders_receivers,froms,users  where froms.user_id=users.id and  messages.place_id =:0  and senders_receivers.message_id=messages.id and froms.sender_id=senders_receivers.sender_id order by senders_receivers.timestamp ';
         const msgParams = [placeId];
         var msgResult = await this.query(msgQuery, msgParams)
         var allRes;
-        allRes = msgResult.data.map(d => {
+        var allSenders = await Promise.all(msgResult.data.map(d => {
+            const sendersQuery = 'select froms.user_id,users.name,users.image from froms,users where users.id = froms.user_id and froms.sender_id= :0 ';
+            const sendersParams = [d.SENDER_ID];
+            return this.query(sendersQuery,sendersParams)
+        }))
+
+        allRes=msgResult.data.map((d,i) => {
+            var uids=allSenders[i].data.map(s=>s.USER_ID)
+            var senders=allSenders[i].data.map(s=>{
+                return {
+                    name:s.NAME,
+                    image:s.IMAGE
+                }
+            })
             var obj = {
+                senders:senders,
                 id:d.ID,
                 msg: d.MSG,
                 image:d.IMAGE,
+                sender_id:d.SENDER_ID,
                 name:d.NAME,
                 timestamp: d.TIMESTAMP,
                 isConnected: true
             }
 
-            if (d.USER_ID === data.user_id) {
+            if (uids.indexOf(data.user_id)>-1) {
                 obj['own'] = true;
 
             } else {
@@ -116,6 +131,7 @@ data:{}
             }
             return obj;
         })
+
         //console.log(allRes)
         return {
             success: true,
@@ -128,6 +144,29 @@ data:{}
         let senderId;
         var groupMembersResult
         var receiverId=null;
+        var uids
+        if(data.senders===null)uids=[data.user_id]
+
+        var isIn=false
+        if(data.senders!==null)
+            data.senders.map(s=>{
+                if(s.value===data.user_id)
+                    isIn=true
+        })
+
+        if(!isIn){
+            var q=`select name, image from users where users.id = :0`
+            var p=[data.user_id]
+            var r=await this.query(q,p)
+            console.log(q,p,r)
+            if(data.senders===null)data.senders=[]
+            data.senders=[{
+                value:data.user_id,
+                name:r.data[0].NAME,
+                image:r.data[0].IMAGE
+            },...data.senders]
+        }
+
         if(data.type===1){
             //console.log('finding inbox')
             const inboxFindQuery = `select count(*) as count from inboxes where uid_1 = :0 and uid_2 = :1`
@@ -170,7 +209,7 @@ data:{}
         //console.log('from find')
 
         if(data.type===2 && data.senders!==null){
-            var uids=data.senders.map(s=>s.value)
+            uids=data.senders.map(s=>s.value)
             if(uids.indexOf(data.user_id)<0)uids.push(data.user_id)
             //senders froms check
             var query=``
@@ -359,24 +398,27 @@ data:{}
             }
 
         }else{
-            if(data.user_id in socketUserTable){
-                socketUserTable[data.user_id].map(async sid=>{
-                    await io.to(sid).emit('message_own_group', {
-                        id:msgIdResult.data[0].ID,
-                        to:data.to,
-                        type:data.type,
-                        body:data.body,
-                        timestamp:Date.now(),
-                        from:data.user_id
-                    });
-                })
-            }
+            uids.map(uid=>{
+                if(uid+'' in socketUserTable){
+                    socketUserTable[uid+''].map(async sid=>{
+                        await io.to(sid).emit('message_own_group', {
+                            id:msgIdResult.data[0].ID,
+                            to:data.to,
+                            type:data.type,
+                            body:data.body,
+                            timestamp:Date.now(),
+                            senders:data.senders,
+                            from:data.user_id
+                        });
+                    })
+                }
+            })
 
             if('tos' in data){
 
             }else{
                 groupMembersResult.data.map((m,i)=>{
-                    if(m.USER_ID!==data.user_id && m.USER_ID+'' in socketUserTable){
+                    if(uids.indexOf(m.USER_ID)===-1 && m.USER_ID+'' in socketUserTable){
                         //console.log(m.USER_ID)
                         socketUserTable[m.USER_ID+''].map(async sid=>{
                             await io.to(sid).emit('message_group', {
@@ -386,6 +428,7 @@ data:{}
                                 body:data.body,
                                 timestamp:Date.now(),
                                 from:data.user_id,
+                                senders:data.senders,
                                 groupId:data.to
                             });
                         })
@@ -410,7 +453,7 @@ data:{}
         }
     }
 
-    delete=async ({user_id,id,place,type})=>{
+    delete=async ({user_id,id,place,type,senders})=>{
         var query=`
             BEGIN
                 deleteMessage(${id});

@@ -46,7 +46,7 @@ import TextField from "@mui/material/TextField";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
-import {Avatar, ListItemAvatar} from "@mui/material";
+import {Avatar, FormControlLabel, FormGroup, ListItemAvatar, Switch} from "@mui/material";
 import Members from "./Inbox/Members";
 import {Add} from "@mui/icons-material";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -69,10 +69,14 @@ function MessagesNew(props) {
     const storage = getStorage(app);
 
     const [selectedSenders,setSelectedSenders]=useState(null)
+    const [selectedReceivers,setSelectedReceivers]=useState(null)
 
     const handleSendersChange = (selectedOptions) => {
-        console.log(selectedOptions)
         setSelectedSenders(selectedOptions)
+    };
+
+    const handleReceiversChange = (selectedOptions) => {
+        setSelectedReceivers(selectedOptions)
     };
 
 
@@ -138,6 +142,12 @@ function MessagesNew(props) {
         socket.emit('typing', data2)
 
     }
+    
+    
+    useEffect(()=>{
+        if(members!==null)
+            setSelectedReceivers(members.map(m=>{return {value:m.ID,label:m.NAME,name:m.NAME,image:m.IMAGE}}))
+    },[members])
 
 
     useEffect(async () => {
@@ -393,7 +403,7 @@ function MessagesNew(props) {
         if (msgText.trim().length === 0)
             showToast(`Message can't be empty`)
         else {
-            await sendMessage(data2.id, data2.type, msgText,replies,selectedSenders)
+            await sendMessage(data2.id, data2.type, msgText,replies,selectedSenders,selectedReceivers)
             msgRef.current.value=''
             setReplies([])
         }
@@ -560,6 +570,7 @@ function MessagesNew(props) {
 
             if(data2Ref.current.id===d.groupId){
                 messagesRef.current = [...messagesRef.current, {
+                    senders:d.senders,
                     id:d.id,
                     msg: d.body,
                     isConnected: true,
@@ -601,7 +612,7 @@ function MessagesNew(props) {
 
 
         socket.on('message_own_group', d => {
-            console.log('message group send')
+            console.log(d)
             var fromInbox
             var prevList = []
             chatHeadsRef.current.map((a, i) => {
@@ -620,6 +631,7 @@ function MessagesNew(props) {
             setChatHeads([fromInbox, ...prevList])
             messagesRef.current = [...messagesRef.current, {
                 id:d.id,
+                senders:d.senders,
                 msg: d.body,
                 isConnected: true,
                 own: true, timestamp: parseInt(d.timestamp / 1000)
@@ -1008,6 +1020,116 @@ function MessagesNew(props) {
 
                 </Toolbar>
                 <Divider />
+                {
+                    data2 && members && data2.type===2?(
+                        <div  style={{padding:'10px'}}>
+                            <b style={{marginLeft:'10px',marginTop:'20px',marginBottom:'10px'}}>Add Senders</b>
+                            <Select
+                                style={{marginLeft:'10px',marginRight:'10px'}}
+                                isMulti={true}
+                                isSearchable={true}
+                                value={selectedSenders}
+                                onChange={handleSendersChange}
+                                options={members.map(m=>{return {value:m.ID,label:m.NAME,name:m.NAME,image:m.IMAGE}})}
+                            />
+                        </div>
+                    ):(
+                        <div/>
+                    )
+                }
+
+
+                {
+                    data2 && members && data2.type===2?(
+                        <div style={{padding:'10px'}}>
+                            <b style={{marginLeft:'10px',marginTop:'20px',marginBottom:'10px'}}>Receivers</b>
+                            <Select
+                                style={{marginLeft:'10px',marginRight:'10px'}}
+
+                                isMulti={true}
+                                isSearchable={true}
+                                value={selectedReceivers}
+                                onChange={handleReceiversChange}
+                                options={members.map(m=>{return {value:m.ID,label:m.NAME,name:m.NAME,image:m.IMAGE}})}
+                            />
+                        </div>
+                    ):(
+                        <div/>
+                    )
+                }
+
+                {
+                    data2 && members && data2.type===2?(
+                        <div style={{padding:'10px'}}>
+                            <FormGroup>
+                                <FormControlLabel control={<Switch/>} label="Scheduled Send" />
+                                <FormControlLabel control={<Switch />} label="Scheduled Deletion" />
+                            </FormGroup>
+                        </div>
+                    ):(
+                        <div/>
+                    )
+                }
+
+
+
+                {
+                    data2 && members && data2.type===2?(
+                        <div style={{padding:'10px'}}>
+                            <TextField
+                                id="datetime-local"
+                                label="Send Schedule"
+                                type="datetime-local"
+                                defaultValue="2022-02-25T10:30"
+                                fullWidth
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                            />
+                        </div>
+                    ):(
+                        <div/>
+                    )
+                }
+
+                {
+                    data2 && members && data2.type===2?(
+                        <div style={{padding:'10px'}}>
+                            <TextField
+                                id="datetime-local"
+                                label="Delete Schedule"
+                                type="datetime-local"
+                                defaultValue="2022-02-25T10:30"
+                                fullWidth
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                            />
+                        </div>
+                    ):(
+                        <div/>
+                    )
+                }
+
+
+                {
+                    data2 && members && data2.type===2?(
+                        <div style={{padding:'10px'}}>
+                            <TextField
+                                id="datetime-local"
+                                label="Password"
+                                type="password"
+                                fullWidth
+                                aria-autocomplete={'none'}
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                            />
+                        </div>
+                    ):(
+                        <div/>
+                    )
+                }
                 {state == 2 && members ? <div style={{marginTop:'10px'}}>
                     <b style={{marginLeft:'10px',marginTop:'10px'}}>Group Members ({members.length})</b>
                     <b style={{marginRight:'10px',cursor:'pointer',float:'right',color:'#dd0000'}}>Leave</b>
@@ -1056,14 +1178,108 @@ function MessagesNew(props) {
 
                 {
                     data2 && members && data2.type===2?(
-                        <div key={data2.id}>
-                            <b style={{marginLeft:'10px',marginTop:'10px'}}>Message Options : </b>
+                        <div  style={{padding:'10px'}}>
+                            <b style={{marginLeft:'10px',marginTop:'20px',marginBottom:'10px'}}>Add Senders</b>
                             <Select
+                                style={{marginLeft:'10px',marginRight:'10px'}}
                                 isMulti={true}
                                 isSearchable={true}
                                 value={selectedSenders}
                                 onChange={handleSendersChange}
                                 options={members.map(m=>{return {value:m.ID,label:m.NAME,name:m.NAME,image:m.IMAGE}})}
+                            />
+                        </div>
+                    ):(
+                        <div/>
+                    )
+                }
+
+
+                {
+                    data2 && members && data2.type===2?(
+                        <div style={{padding:'10px'}}>
+                            <b style={{marginLeft:'10px',marginTop:'20px',marginBottom:'10px'}}>Receivers</b>
+                            <Select
+                                style={{marginLeft:'10px',marginRight:'10px'}}
+
+                                isMulti={true}
+                                isSearchable={true}
+                                value={selectedReceivers}
+                                onChange={handleReceiversChange}
+                                options={members.map(m=>{return {value:m.ID,label:m.NAME,name:m.NAME,image:m.IMAGE}})}
+                            />
+                        </div>
+                    ):(
+                        <div/>
+                    )
+                }
+
+                {
+                    data2 && members && data2.type===2?(
+                        <div style={{padding:'10px'}}>
+                            <FormGroup>
+                                <FormControlLabel control={<Switch/>} label="Scheduled Send" />
+                                <FormControlLabel control={<Switch />} label="Scheduled Deletion" />
+                            </FormGroup>
+                        </div>
+                    ):(
+                        <div/>
+                    )
+                }
+
+
+
+                {
+                    data2 && members && data2.type===2?(
+                        <div style={{padding:'10px'}}>
+                            <TextField
+                                id="datetime-local"
+                                label="Send Schedule"
+                                type="datetime-local"
+                                defaultValue="2022-02-25T10:30"
+                                fullWidth
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                            />
+                        </div>
+                    ):(
+                        <div/>
+                    )
+                }
+
+                {
+                    data2 && members && data2.type===2?(
+                        <div style={{padding:'10px'}}>
+                            <TextField
+                                id="datetime-local"
+                                label="Delete Schedule"
+                                type="datetime-local"
+                                defaultValue="2022-02-25T10:30"
+                                fullWidth
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
+                            />
+                        </div>
+                    ):(
+                        <div/>
+                    )
+                }
+
+
+                {
+                    data2 && members && data2.type===2?(
+                        <div style={{padding:'10px'}}>
+                            <TextField
+                                id="datetime-local"
+                                label="Password"
+                                type="password"
+                                fullWidth
+                                aria-autocomplete={'none'}
+                                InputLabelProps={{
+                                    shrink: true,
+                                }}
                             />
                         </div>
                     ):(
