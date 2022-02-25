@@ -1,0 +1,144 @@
+CREATE TABLE users (
+    id NUMBER GENERATED ALWAYS as IDENTITY(START with 1 INCREMENT by 1) ,
+    name varchar(100) not null,
+    image varchar(1000),
+    status varchar(25),
+    login varchar(100) not null,
+    pass varchar(1024) not null,
+    PRIMARY KEY(id)
+ );
+
+
+
+CREATE TABLE places (
+    id NUMBER GENERATED ALWAYS as IDENTITY(START with 1 INCREMENT by 1) ,
+    type NUMBER NOT NULL,
+    PRIMARY KEY(id)
+ );
+
+CREATE TABLE groups (
+    id NUMBER NOT NULL ,
+    name varchar(100) not null,
+    image varchar(1000),
+    timestamp number(11) not null,
+    created_by NUMBER NOT NULL,
+    PRIMARY KEY(id),
+    FOREIGN KEY(id) REFERENCES places(id),
+    FOREIGN KEY(created_by) REFERENCES users(id)
+ );
+
+CREATE TABLE inboxes ( 
+    id NUMBER NOT NULL ,  ,
+    uid_1 number not null,
+    uid_2 number not null,
+    timestamp number(11) not null,
+    created_by NUMBER NOT NULL,
+    PRIMARY KEY(id),
+    FOREIGN KEY(id) REFERENCES places(id),
+    FOREIGN KEY(uid_1) REFERENCES users(id),
+    FOREIGN KEY(uid_2) REFERENCES users(id),
+    CONSTRAINT inbox_uid_constraint CHECK (uid_1<uid_2)
+ );
+
+CREATE TABLE members (
+   user_id number not null,
+   group_id number not null,
+    timestamp number(11) not null,  
+   PRIMARY KEY(user_id,group_id),
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    FOREIGN KEY(group_id) REFERENCES groups(id)
+ );
+CREATE TABLE senders (
+   id NUMBER GENERATED ALWAYS as IDENTITY(START with 1 INCREMENT by 1)  not null,
+   PRIMARY KEY(id)
+  );
+
+CREATE TABLE froms (
+   user_id number not null,
+   sender_id number not null,
+    PRIMARY KEY(user_id,sender_id),
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    FOREIGN KEY(sender_id) REFERENCES senders(id)
+ );
+
+CREATE TABLE receivers (
+  id NUMBER GENERATED ALWAYS as IDENTITY(START with 1 INCREMENT by 1)  not null,
+  PRIMARY KEY(id)
+  );
+
+CREATE TABLE tos (
+   user_id number not null,
+   receiver_id number not null,
+    PRIMARY KEY(user_id,receiver_id),
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    FOREIGN KEY(receiver_id) REFERENCES receivers(id)
+ );
+
+CREATE TABLE messages (
+    id NUMBER GENERATED ALWAYS as IDENTITY(START with 1 INCREMENT by 1)  not null,
+    msg varchar(2048) NOT NULL,
+    place_id number not null,
+    till NUMBER(11),
+    schedule NUMBER(11),
+    is_deleted NUMBER(1) NOT NULL,
+    pass varchar(1012),
+    is_forwarded NUMBER(1) NOT NULL,
+    PRIMARY KEY(id),
+    FOREIGN KEY(place_id) REFERENCES places(id)
+ );
+
+CREATE TABLE replies (
+    msg_id_1 number not null,
+    msg_id_2 number not null,
+    timestamp number(11) not null,
+    PRIMARY KEY(msg_id_1,msg_id_2),
+    FOREIGN KEY(msg_id_1) REFERENCES messages(id),
+    FOREIGN KEY(msg_id_2) REFERENCES messages(id)
+ );
+
+CREATE TABLE senders_receievers (
+    message_id number not null,
+    sender_id number not null,
+    receiver_id number not null,
+    timestamp number(11) not null,
+    PRIMARY KEY(message_id,sender_id,receiver_id),
+    FOREIGN KEY(message_id) REFERENCES messages(id),
+    FOREIGN KEY(sender_id) REFERENCES senders(id),
+    FOREIGN KEY(receiver_id) REFERENCES receivers(id)
+ );
+
+CREATE TABLE hidden (
+    user_id number not null,
+    place_id number not null,
+    PRIMARY KEY(user_id,place_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (place_id) REFERENCES places(id)
+);
+
+CREATE TABLE seen (
+    user_id number not null,
+    message_id number not null,
+    timestamp number(11) not null,
+    PRIMARY KEY(user_id,message_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (message_id) REFERENCES messages(id)
+);
+
+CREATE TABLE reactions (
+    id NUMBER GENERATED ALWAYS as IDENTITY(START with 1 INCREMENT by 1)  not null,
+    label varchar(100) not null,
+    image varchar(1000) not null,
+    PRIMARY KEY(id)
+);
+
+CREATE TABLE reacts (
+    message_id number not null,
+    user_id number not null,
+    reaction_id number not null,
+    timestamp number(11) not null,
+    PRIMARY KEY(message_id,user_id,reaction_id),
+    FOREIGN KEY(message_id) REFERENCES messages(id),
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    FOREIGN KEY(reaction_id) REFERENCES reactions(id)
+ );
+
