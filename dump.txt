@@ -28,7 +28,7 @@ CREATE TABLE groups (
  );
 
 CREATE TABLE inboxes ( 
-    id NUMBER NOT NULL ,  ,
+    id NUMBER NOT NULL ,  
     uid_1 number not null,
     uid_2 number not null,
     timestamp number(11) not null,
