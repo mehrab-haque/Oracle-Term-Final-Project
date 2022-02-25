@@ -36,6 +36,7 @@
     -To run backend , type npm test. It will run the development server.<br/>
     
   - Api list<br/>
+  -  https://docs.google.com/spreadsheets/d/1WpNdPwE0AVim9NJoUgx_lv8LjL40FqIBatKK6P4kF0Q/edit#gid=0
 
     
     
