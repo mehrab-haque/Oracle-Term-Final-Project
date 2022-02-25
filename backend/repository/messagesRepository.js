@@ -268,8 +268,8 @@ data:{}
             }
         }
 
-        const msgQuery = `insert into messages (msg,place_id,is_deleted,is_forwarded) values(:0,:1,:2,:3)`
-        const msgParams = [data.body, placeId, 0, 0];
+        const msgQuery = `insert into messages (msg,place_id,till,schedule,is_deleted,pass,is_forwarded) values(:0,:1,:2,:3,:4,:5,:6,:7)`
+        const msgParams = [data.body, placeId, data.till, data.schedule,data.is_deleted,data.pass,data.is_forwarded];
         const msgResult = await this.query(msgQuery, msgParams);
 
 
@@ -292,7 +292,12 @@ data:{}
                         type:data.type,
                         body:data.body,
                         timestamp:Date.now(),
-                        from:data.user_id
+                        from:data.user_id,
+			till:data.till,
+			schedule:data.schedule,
+			is_deleted:data.is_deleted,
+			pass:data.pass,
+			is_forwarded:data.is_forwarded
                     });
                 })
             }
@@ -304,7 +309,12 @@ data:{}
                         type:data.type,
                         body:data.body,
                         timestamp:Date.now(),
-                        from:data.user_id
+                        from:data.user_id,
+			till:data.till,
+			schedule:data.schedule,
+			is_deleted:data.is_deleted,
+			pass:data.pass,
+			is_forwarded:data.is_forwarded
                     });
                 })
             }
@@ -318,7 +328,12 @@ data:{}
                         type:data.type,
                         body:data.body,
                         timestamp:Date.now(),
-                        from:data.user_id
+                        from:data.user_id,
+			till:data.till,
+			schedule:data.schedule,
+			is_deleted:data.is_deleted,
+			pass:data.pass,
+			is_forwarded:data.is_forwarded
                     });
                 })
             }
@@ -337,7 +352,12 @@ data:{}
                                 body:data.body,
                                 timestamp:Date.now(),
                                 from:data.user_id,
-                                groupId:data.to
+                                groupId:data.to,
+				till:data.till,
+				schedule:data.schedule,
+				is_deleted:data.is_deleted,
+				pass:data.pass,
+				is_forwarded:data.is_forwarded
                             });
                         })
                     }
